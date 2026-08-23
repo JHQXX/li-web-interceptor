@@ -7,7 +7,7 @@ import type { AppState, BlockRule, VariantSettings } from './types';
 export type Message =
   | { type: 'get-state' }
   | { type: 'get-tab-info' }
-  | { type: 'add-block'; payload: { host: string; reason?: string } }
+  | { type: 'add-block'; payload: { host: string; reason?: string; tabId?: number; url?: string } }
   | { type: 'remove-block'; payload: { id: string } }
   | { type: 'update-block'; payload: { id: string; changes: Partial<BlockRule['options']> & { reason?: string } } }
   | { type: 'add-whitelist'; payload: { host: string } }
@@ -32,7 +32,7 @@ export type Message =
 export type MessageResponse<T extends Message> = T extends { type: 'get-state' }
   ? { ok: true; state: AppState }
   : T extends { type: 'get-tab-info' }
-    ? { ok: true; url: string | null; host: string | null }
+    ? { ok: true; url: string | null; host: string | null; tabId: number | undefined }
     : T extends { type: 'add-block' }
       ? { ok: true; rule: BlockRule }
       : T extends { type: 'reset-password' }

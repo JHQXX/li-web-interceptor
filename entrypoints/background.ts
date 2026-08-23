@@ -100,15 +100,40 @@ async function setupContextMenus() {
   });
 }
 
-async function handleContextMenuClick(info: { menuItemId: number | string; pageUrl?: string; linkUrl?: string }) {
-  const url = info.menuItemId === MENU_BLOCK_LINK ? info.linkUrl : info.pageUrl;
+async function handleContextMenuClick(info: {
+  menuItemId: number | string;
+  pageUrl?: string;
+  linkUrl?: string;
+  tabId?: number;
+}) {
+  if (info.menuItemId === MENU_BLOCK_LINK) {
+    const url = info.linkUrl;
+    if (!url) return;
+    const host = getHostname(url);
+    if (!host) return;
+    await updateState((state) => {
+      addBlock(state, host);
+      return state;
+    });
+    return;
+  }
+  const url = info.pageUrl;
   if (!url) return;
   const host = getHostname(url);
   if (!host) return;
-  await updateState((state) => {
-    addBlock(state, host);
-    return state;
+  const state = await updateState((s) => {
+    addBlock(s, host);
+    return s;
   });
+  // 拦截的是当前页：添加后立即重定向到拦截页
+  const decision = decideHost(host, state, Date.now());
+  if (decision.status === 'blocked' && info.tabId != null) {
+    try {
+      await browser.tabs.update(info.tabId, { url: blockedPageUrl(url, host) });
+    } catch {
+      // 忽略
+    }
+  }
 }
 
 async function handleMessage(message: Message) {
@@ -121,11 +146,28 @@ async function handleMessage(message: Message) {
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
       const url = tab?.url ?? null;
       const host = url ? getHostname(url) : null;
-      return { ok: true, url, host } as const;
+      return { ok: true, url, host, tabId: tab?.id } as const;
     }
     case 'add-block': {
-      const state = await updateState((s) => { addBlock(s, message.payload.host, message.payload.reason); return s; });
+      const state = await updateState((s) => {
+        addBlock(s, message.payload.host, message.payload.reason);
+        return s;
+      });
       const rule = state.blockList.find((r) => r.hostname === normalizeHost(message.payload.host));
+      // 自动拦截：携带了当前标签页信息且命中拦截时，立即重定向到拦截页
+      if (message.payload.tabId != null && message.payload.url) {
+        const host = getHostname(message.payload.url);
+        if (host) {
+          const decision = decideHost(host, state, Date.now());
+          if (decision.status === 'blocked') {
+            try {
+              await browser.tabs.update(message.payload.tabId, { url: blockedPageUrl(message.payload.url, host) });
+            } catch {
+              // 标签页可能已关闭，忽略
+            }
+          }
+        }
+      }
       return { ok: true, rule: rule! } as const;
     }
     case 'remove-block': {

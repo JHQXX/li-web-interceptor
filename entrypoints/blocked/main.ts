@@ -93,7 +93,8 @@ async function submitPassword() {
 }
 
 async function sessionUnlockAndGo() {
-  await send({ type: 'session-unlock', payload: { host: site, minutes: 5 } });
+  const minutes = Number(($('session-min') as HTMLSelectElement).value) || 5;
+  await send({ type: 'session-unlock', payload: { host: site, minutes } });
   goBack();
 }
 

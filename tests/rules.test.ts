@@ -115,6 +115,23 @@ describe('decideHost', () => {
     expect(d.status).toBe('allowed');
     expect(d.cause).toBe('session');
   });
+  it('www 前缀的会话放行也能匹配（回归）', () => {
+    const now = Date.now();
+    const d = decideHost('www.youtube.com', input({
+      blockList: [blockRule('youtube.com', ['youtube.com', '*.youtube.com'])],
+      sessionUnlocks: [{ id: 'u', hostname: 'youtube.com', expiresAt: now + 60000 }],
+    }), now);
+    expect(d.status).toBe('allowed');
+    expect(d.cause).toBe('session');
+  });
+  it('子域不被父域会话放行覆盖', () => {
+    const now = Date.now();
+    const d = decideHost('m.youtube.com', input({
+      blockList: [blockRule('youtube.com', ['youtube.com', '*.youtube.com'])],
+      sessionUnlocks: [{ id: 'u', hostname: 'youtube.com', expiresAt: now + 60000 }],
+    }), now);
+    expect(d.status).toBe('blocked');
+  });
   it('倒计时中仍拦截并返回剩余时间', () => {
     const now = Date.now();
     const d = decideHost('youtube.com', input({

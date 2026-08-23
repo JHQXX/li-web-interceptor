@@ -100,6 +100,8 @@ export interface DecideInput {
  */
 export function decideHost(host: string, input: DecideInput, now: number = Date.now()): Decision {
   const h = host.toLowerCase();
+  // 会话放行与倒计时按“去 www 的规范化域名”匹配，避免 www. 与裸域对不上
+  const hNorm = normalizeHost(h);
 
   // 1. 白名单（最高优先）
   if (input.whitelist.some((r) => anyMatch(h, r.patterns))) {
@@ -110,13 +112,13 @@ export function decideHost(host: string, input: DecideInput, now: number = Date.
     return { status: 'allowed', cause: 'schedule' };
   }
   // 3. 会话级临时放行
-  if (input.sessionUnlocks.some((s) => s.hostname === h && s.expiresAt > now)) {
+  if (input.sessionUnlocks.some((s) => s.hostname === hNorm && s.expiresAt > now)) {
     return { status: 'allowed', cause: 'session' };
   }
   // 4/5. 拦截列表 + 倒计时
   const rule = findRule(h, input.blockList);
   if (rule) {
-    const cd = input.activeCountdowns.find((c) => c.hostname === h);
+    const cd = input.activeCountdowns.find((c) => c.hostname === hNorm);
     if (cd) {
       if (cd.unlocksAt <= now) {
         return { status: 'allowed', cause: 'countdown-done' };

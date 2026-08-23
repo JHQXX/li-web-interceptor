@@ -118,3 +118,16 @@ input[type='password']:focus { border-color: #89b4fa; }
 .modal-actions .btn { flex: 1; }
 
 .unlock-options { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+
+.session-row { display: flex; gap: 8px; }
+.session-select {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #45475a;
+  background: #11111b;
+  color: #cdd6f4;
+  font-size: 15px;
+  outline: none;
+}
+.session-select:focus { border-color: #89b4fa; }

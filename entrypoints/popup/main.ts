@@ -78,9 +78,14 @@ $('lock-toggle').addEventListener('change', async (e) => {
 
 $('btn-block').addEventListener('click', async () => {
   const tabInfo = await send({ type: 'get-tab-info' });
-  if (!tabInfo.host) return;
-  await send({ type: 'add-block', payload: { host: tabInfo.host } });
+  if (!tabInfo.host || !tabInfo.tabId || !tabInfo.url) return;
+  // 携带当前标签页信息，background 添加后会自动把当前页重定向到拦截页
+  await send({
+    type: 'add-block',
+    payload: { host: tabInfo.host, tabId: tabInfo.tabId, url: tabInfo.url },
+  });
   refresh();
+  window.close();
 });
 
 $('btn-whitelist').addEventListener('click', async () => {
