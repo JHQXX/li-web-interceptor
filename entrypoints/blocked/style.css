@@ -127,3 +127,61 @@ input:focus { border-color: var(--accent); }
 .actions { max-width: 320px; margin: 0 auto; width: 100%; }
 .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
 .modal-box { border-radius: 12px; }
+
+/* ================= 卡通手绘风格 ================= */
+:root {
+  --bg: #fff8ee;
+  --bg-grad: linear-gradient(180deg, #fff3e0 0%, #fff8ee 100%);
+  --surface: #fffdf7;
+  --border: #ffd9a8;
+  --border-strong: #f2a65a;
+  --border-soft: #ffe9c9;
+  --text: #5b4a3f;
+  --text-muted: #8a7461;
+  --text-faint: #b3a08a;
+  --accent: #ff6f3c;
+  --accent-hover: #ff8f63;
+  --accent-soft: #fff0e0;
+  --accent-border: #ffc9a3;
+  --blue: #5b8def;
+  --danger: #ff5a5f;
+  --input-bg: #fffdf7;
+  --shadow: 0 8px 0 var(--border-soft), 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+[data-theme='dark'] {
+  --bg: #2a231f;
+  --bg-grad: linear-gradient(180deg, #332a24 0%, #2a231f 100%);
+  --surface: #3a3028;
+  --border: #58493d;
+  --border-strong: #8a6f5a;
+  --border-soft: #4a3e35;
+  --text: #e9ddc7;
+  --text-muted: #b3a08a;
+  --text-faint: #8a7461;
+  --accent: #ff8f63;
+  --accent-hover: #ffa580;
+  --accent-soft: #4a3426;
+  --accent-border: #7a5438;
+  --blue: #7aa5f0;
+  --danger: #ff6b70;
+  --input-bg: #2a231f;
+  --shadow: 0 8px 0 var(--border-soft), 0 20px 40px rgba(0, 0, 0, 0.45);
+}
+
+body { font-family: 'Chalkboard SE', 'Comic Sans MS', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg-grad); }
+
+.block-card { border: 3px solid var(--border-strong); border-radius: 28px; box-shadow: var(--shadow); background: var(--surface); }
+.icon { font-size: 72px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.12)); }
+h1 { color: var(--accent); }
+.site { border: 2px solid var(--accent-border); border-radius: 999px; }
+
+.btn { border-radius: 999px; box-shadow: 0 4px 0 color-mix(in srgb, var(--border-strong) 60%, #000); font-weight: 600; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb, var(--border-strong) 60%, #000); }
+.btn-secondary { box-shadow: 0 4px 0 color-mix(in srgb, var(--blue) 60%, #000); }
+.btn-danger { box-shadow: 0 4px 0 color-mix(in srgb, var(--danger) 60%, #000); }
+.btn-ghost { background: var(--surface); }
+
+.modal-box { border-radius: 20px; border: 3px solid var(--border-strong); }
+input[type='password'], input[type='text'], .session-select { border: 2px solid var(--border); border-radius: 999px; background: var(--input-bg); color: var(--text); }
+.countdown { color: var(--accent); }
+footer a { color: var(--text-faint); }

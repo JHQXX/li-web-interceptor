@@ -265,3 +265,105 @@ input:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 .help-examples li { padding: 3px 0; line-height: 1.6; }
 .help-examples b { color: var(--text-strong); }
 .tip.example { color: var(--accent); }
+
+/* ================= 卡通手绘风格 ================= */
+:root {
+  --bg: #fff8ee;
+  --bg-soft: #fff3e0;
+  --surface: #fffdf7;
+  --border: #ffd9a8;
+  --border-soft: #ffe9c9;
+  --text: #5b4a3f;
+  --text-strong: #3e2f28;
+  --text-muted: #a08a74;
+  --accent: #ff6f3c;
+  --accent-hover: #ff8f63;
+  --accent-soft: #fff0e0;
+  --green: #4caf50;
+  --blue: #5b8def;
+  --danger: #ff5a5f;
+  --input-bg: #fffdf7;
+  --table-head: #fff3e0;
+  --row-hover: #fff6e8;
+  --danger-soft: #ffe3e3;
+  --ink: #5b4a3f;
+  --ink-soft: #f2a65a;
+}
+[data-theme='dark'] {
+  --bg: #2a231f;
+  --bg-soft: #332a24;
+  --surface: #3a3028;
+  --border: #58493d;
+  --border-soft: #4a3e35;
+  --text: #e9ddc7;
+  --text-strong: #fff6e8;
+  --text-muted: #b3a08a;
+  --accent: #ff8f63;
+  --accent-hover: #ffa580;
+  --accent-soft: #4a3426;
+  --green: #66bb6a;
+  --blue: #7aa5f0;
+  --danger: #ff6b70;
+  --input-bg: #2a231f;
+  --table-head: #40352c;
+  --row-hover: #43382f;
+  --danger-soft: #4a2a2c;
+  --ink: #e9ddc7;
+  --ink-soft: #b3805c;
+}
+
+body { font-family: 'Chalkboard SE', 'Comic Sans MS', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); }
+
+/* Tab → 圆角胶囊 */
+.tabs-nav { gap: 6px; border-bottom: 2px solid var(--border); padding: 8px 24px; background: var(--bg); }
+.tabs-nav li { padding: 9px 18px; border-bottom: none; border-radius: 999px; }
+.tabs-nav li.tab-active { background: var(--accent); }
+.tabs-nav li.tab-active a { color: #fff; font-weight: 600; }
+.tabs-nav li:hover a { color: var(--accent); }
+
+.main-heading { border-bottom: 2px solid var(--border); }
+.logo-icon { filter: drop-shadow(0 2px 2px rgba(0,0,0,0.12)); }
+
+/* 卡片 */
+.card { border: 2px solid var(--border); border-radius: 18px; box-shadow: 0 4px 0 var(--border-soft), 0 8px 16px rgba(0, 0, 0, 0.05); }
+.card h2 { color: var(--text-strong); }
+
+/* 添加区 */
+.add-box { background: var(--bg-soft); border: 2px dashed var(--border-soft); border-radius: 18px; }
+
+/* 按钮 → 圆润 + 3D 底边 */
+.btn { border-radius: 999px; box-shadow: 0 3px 0 color-mix(in srgb, var(--ink-soft) 55%, #000); font-weight: 600; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb, var(--ink-soft) 55%, #000); }
+.btn-ghost { background: var(--surface); }
+.btn-small { box-shadow: 0 2px 0 color-mix(in srgb, var(--ink-soft) 55%, #000); }
+
+/* 输入控件 → 圆润 */
+input[type='text'], input[type='password'], input[type='number'], input[type='time'], select {
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: var(--input-bg);
+}
+input:focus, select:focus { border-color: var(--accent); }
+.mini-input, .time, .rule-redirect { border-radius: 999px; }
+
+/* 表格 */
+.table-wrap { border: 2px solid var(--border); border-radius: 16px; overflow: hidden; }
+.list-table th { background: var(--table-head); color: var(--text-muted); }
+.list-table tbody tr:hover { background: var(--row-hover); }
+
+/* 列表 / 档案 / 关键词条目 */
+.kw-list li { border: 2px solid var(--border); border-radius: 14px; background: var(--surface); }
+.sch-list li { border: 2px solid var(--border); border-radius: 14px; background: var(--surface); }
+
+/* 帮助示例 → 手绘虚线框 */
+.help-examples { border: 2px dashed var(--ink-soft); background: var(--accent-soft); border-radius: 16px; }
+
+/* 统计卡片 */
+.stat-card { border: 2px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: 0 3px 0 var(--border-soft); }
+.stat-num { color: var(--accent); }
+
+/* 番茄 */
+.pomo-time { color: var(--accent); }
+
+/* 开关 */
+.switch .slider { box-shadow: inset 0 1px 2px rgba(0,0,0,0.15); }

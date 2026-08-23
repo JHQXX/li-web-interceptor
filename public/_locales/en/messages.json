@@ -111,7 +111,7 @@
     "message": "Add these sites to the block list (domain+variants/permanent)?"
   },
   "blTemplateAdded": {
-    "message": "Template \"$1\" added"
+    "message": "Template $1 added"
   },
   "matchDomain": {
     "message": "Domain+vars"
@@ -345,7 +345,7 @@
     "message": "Show countdown"
   },
   "bpCountdownMin": {
-    "message": "Default \"timed unlock\" (minutes)"
+    "message": "Default timed unlock (minutes)"
   },
   "bpSave": {
     "message": "Save block page settings"
@@ -846,7 +846,7 @@
     "message": "Matches only when the host equals the domain exactly (www treated as same), e.g. example.com does not match a.example.com"
   },
   "helpPattern": {
-    "message": "Use * for any characters, e.g. https://shop.com/*/checkout/ matches all checkout pages"
+    "message": "Use * to match any characters; * covers any part of the URL to block similar URLs"
   },
   "helpFull": {
     "message": "Matches only when the full URL is identical, useful to block one exact page"

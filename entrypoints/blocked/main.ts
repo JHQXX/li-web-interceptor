@@ -4,9 +4,10 @@ import { send } from '@/utils/messaging';
 import { decide, findBlockRule } from '@/utils/rules';
 import { getActiveProfile } from '@/utils/storage';
 import { formatRemaining } from '@/utils/time';
-import { t , applyI18n } from '@/utils/i18n';
+import { t , applyI18n, applyI18nWhenReady } from '@/utils/i18n';
 
 applyI18n();
+applyI18nWhenReady();
 import type { AppState, BlockRule } from '@/utils/types';
 
 const params = new URLSearchParams(location.search);

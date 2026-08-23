@@ -1,8 +1,11 @@
 /**
- * 多语言助手：包装 chrome.i18n.getMessage，失败时回退为 key。
- * 非扩展环境（单测）下浏览器 API 不可用时同样回退。
+ * 多语言助手：优先 chrome.i18n，缺失时回退到内置中文词典，保证文案始终可见。
+ * 非扩展环境（单测）下同样安全回退为 key。
  */
 import { browser } from 'wxt/browser';
+import zhDict from './messages-zh.json';
+
+const zh = zhDict as unknown as Record<string, string>;
 
 // WXT 生成的 i18n 类型把 key 收窄为 __MSG_*__ 联合，这里放宽以支持任意 key
 function rawGetMessage(key: string, subs?: string[]): string {
@@ -12,12 +15,21 @@ function rawGetMessage(key: string, subs?: string[]): string {
 }
 
 export function t(key: string, subs?: Array<string | number>): string {
+  const s = subs?.map(String);
   try {
-    const msg = rawGetMessage(key, subs?.map(String));
-    return msg || key;
+    const msg = rawGetMessage(key, s);
+    if (msg) return msg;
   } catch {
-    return key;
+    // 忽略
   }
+  // 内置中文兜底
+  let base = zh[key] ?? key;
+  if (s) {
+    s.forEach((v, i) => {
+      base = base.split(`$${i + 1}`).join(v);
+    });
+  }
+  return base;
 }
 
 /** 星期几标签：0=周日 … 6=周六 */
@@ -56,4 +68,13 @@ export function applyI18n(root: ParentNode = document): void {
       if (v && v.includes('__MSG_')) el.setAttribute(attr, replaceIn(v));
     }
   });
+}
+
+/** 在 DOMContentLoaded 后再执行一次替换（兜底，防止首次执行过早） */
+export function applyI18nWhenReady(): void {
+  if (document.readyState !== 'loading') {
+    applyI18n();
+    return;
+  }
+  document.addEventListener('DOMContentLoaded', () => applyI18n());
 }

@@ -846,7 +846,7 @@
     "message": "仅当主机名与域名完全一致时命中（www 视为相同），如 example.com 不匹配 a.example.com"
   },
   "helpPattern": {
-    "message": "用 * 匹配任意字符，如 https://shop.com/*/checkout/ 会命中该站所有结算页"
+    "message": "用 * 匹配任意字符，* 可代表任意片段，便于一次拦下多种相似网址"
   },
   "helpFull": {
     "message": "仅当完整网址完全一致时命中，适合精确屏蔽某个页面"
