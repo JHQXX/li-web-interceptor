@@ -1,13 +1,32 @@
 /**
- * 规则引擎：匹配、衍生扩展、拦截判定（纯函数，可单测）。
+ * 规则引擎 v2：匹配模式、拦截类型、白名单模式、关键词、按次/计时/排程（纯函数，可单测）。
  */
-import type { AppState, BlockRule, Schedule, SessionUnlock, ActiveCountdown } from './types';
+import type {
+  BlockPageSettings,
+  BlockRule,
+  SessionUnlock,
+  ActiveCountdown,
+  DomainOptions,
+  WhitelistRule,
+} from './types';
 import { COMMON_TLDS, getRegistrableDomain, normalizeHost } from './domain';
-import { isInSchedule } from './time';
+import { isInWindow } from './time';
 
 export type Decision =
-  | { status: 'allowed'; cause: 'not-listed' | 'whitelist' | 'schedule' | 'session' | 'countdown-done' }
-  | { status: 'blocked'; cause: 'rule'; rule: BlockRule; countdownRemainingMs: number | null };
+  | {
+      status: 'allowed';
+      cause: 'session' | 'whitelist' | 'countdown-done' | 'not-listed' | 'attempt-allowed';
+      ruleId?: string;
+      whitelistRuleId?: string;
+    }
+  | {
+      status: 'blocked';
+      cause: 'rule' | 'keyword' | 'allowlist';
+      rule?: BlockRule;
+      keyword?: string;
+      countdownRemainingMs: number | null;
+      silent: boolean;
+    };
 
 /** 主机名匹配：支持 "*.example.com" 通配（含裸域） */
 export function matchesHost(host: string, pattern: string): boolean {
@@ -73,64 +92,187 @@ export function expandHost(
   return [...patterns];
 }
 
-/** 找到最具体的命中规则（精确模式优先于通配） */
-export function findRule(host: string, rules: BlockRule[]): BlockRule | undefined {
-  let best: { rule: BlockRule; score: number } | undefined;
-  for (const rule of rules) {
-    for (const p of rule.patterns) {
-      if (matchesHost(host, p)) {
-        const score = p.startsWith('*.') ? p.length - 1 : p.length + 1000;
-        if (!best || score > best.score) best = { rule, score };
-      }
+/** 计算 domain 模式的匹配模式（供添加/更新时缓存到规则） */
+export function computePatterns(text: string, opts?: DomainOptions): string[] {
+  const h = normalizeHost(text);
+  if (!h) return [text];
+  const o = opts ?? { includeSubdomains: true, includeTldVariants: false, includeKnownMirrors: true };
+  return expandHost(h, o);
+}
+
+/** 通配模式转正则（* → 任意字符） */
+export function patternToRegex(pattern: string): RegExp {
+  const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+  return new RegExp(`^${escaped}$`, 'i');
+}
+
+interface Matchable {
+  text: string;
+  matchMode: BlockRule['matchMode'];
+  domainOptions?: DomainOptions;
+  patterns?: string[];
+}
+
+/** 按匹配模式判断 URL/主机是否命中 */
+export function modeMatches(url: string, host: string, rule: Matchable): boolean {
+  const text = rule.text.trim().toLowerCase();
+  if (text === '*') return true;
+  switch (rule.matchMode) {
+    case 'domain': {
+      const patterns = rule.patterns ?? computePatterns(text, rule.domainOptions);
+      return anyMatch(host, patterns);
     }
+    case 'contain':
+      return url.toLowerCase().includes(text);
+    case 'exact':
+      return normalizeHost(host) === normalizeHost(text);
+    case 'full':
+      return url.toLowerCase() === text;
+    case 'pattern':
+      return patternToRegex(text).test(url.toLowerCase());
+    default:
+      return false;
   }
-  return best?.rule;
+}
+
+export function findBlockRule(url: string, host: string, rules: BlockRule[]): BlockRule | undefined {
+  for (const rule of rules) {
+    if (rule.status !== 'blocked') continue;
+    if (modeMatches(url, host, rule)) return rule;
+  }
+  return undefined;
+}
+
+export function findWhitelistRule(url: string, host: string, rules: WhitelistRule[]): WhitelistRule | undefined {
+  for (const rule of rules) {
+    if (rule.status !== 'allowed') continue;
+    if (modeMatches(url, host, rule)) return rule;
+  }
+  return undefined;
+}
+
+export function findKeyword(url: string, keywords: { keyword: string; enabled: boolean }[]): string | undefined {
+  const u = url.toLowerCase();
+  for (const k of keywords) {
+    if (!k.enabled) continue;
+    const kw = k.keyword.trim().toLowerCase();
+    if (kw && u.includes(kw)) return kw;
+  }
+  return undefined;
 }
 
 export interface DecideInput {
   blockList: BlockRule[];
-  whitelist: AppState['whitelist'];
-  schedules: Schedule[];
+  whitelist: WhitelistRule[];
+  keywords: { keyword: string; enabled: boolean }[];
+  keywordBlockingEnabled: boolean;
+  whitelistMode: boolean;
   sessionUnlocks: SessionUnlock[];
   activeCountdowns: ActiveCountdown[];
+  activeTimewise: Record<string, number>;
+  attemptState: Record<string, number>;
+  whitelistAttemptState: Record<string, number>;
+  now?: number;
 }
 
 /**
- * 拦截判定。优先级：白名单 > 允许时段 > 会话放行 > 倒计时 > 拦截列表。
+ * 拦截判定。优先级：会话放行 > 白名单 > 全站白名单模式 > 关键词 > 拦截规则 > 放行。
  */
-export function decideHost(host: string, input: DecideInput, now: number = Date.now()): Decision {
-  const h = host.toLowerCase();
-  // 会话放行与倒计时按“去 www 的规范化域名”匹配，避免 www. 与裸域对不上
-  const hNorm = normalizeHost(h);
+export function decide(
+  url: string,
+  host: string,
+  input: DecideInput,
+  now: number = Date.now(),
+): Decision {
+  const hNorm = normalizeHost(host);
 
-  // 1. 白名单（最高优先）
-  if (input.whitelist.some((r) => anyMatch(h, r.patterns))) {
-    return { status: 'allowed', cause: 'whitelist' };
-  }
-  // 2. 固定允许时段
-  if (isInSchedule(input.schedules, now)) {
-    return { status: 'allowed', cause: 'schedule' };
-  }
-  // 3. 会话级临时放行
+  // 1. 会话级临时放行
   if (input.sessionUnlocks.some((s) => s.hostname === hNorm && s.expiresAt > now)) {
     return { status: 'allowed', cause: 'session' };
   }
-  // 4/5. 拦截列表 + 倒计时
-  const rule = findRule(h, input.blockList);
+
+  // 2. 白名单
+  const wl = findWhitelistRule(url, host, input.whitelist);
+  if (wl) {
+    if (wl.type === 'permanent') {
+      return { status: 'allowed', cause: 'whitelist', whitelistRuleId: wl.id };
+    }
+    if (wl.type === 'schedule' && wl.schedule && isInWindow(wl.schedule, now)) {
+      return { status: 'allowed', cause: 'whitelist', whitelistRuleId: wl.id };
+    }
+    if (wl.type === 'attemptwise') {
+      const used = input.whitelistAttemptState[wl.id] ?? 0;
+      const total = wl.attempts ?? 0;
+      if (total > 0 && used < total) {
+        return { status: 'allowed', cause: 'whitelist', whitelistRuleId: wl.id };
+      }
+    }
+  }
+
+  // 3. 全站白名单模式
+  if (input.whitelistMode) {
+    return { status: 'blocked', cause: 'allowlist', countdownRemainingMs: null, silent: false };
+  }
+
+  // 4. 关键词拦截
+  if (input.keywordBlockingEnabled) {
+    const kw = findKeyword(url, input.keywords);
+    if (kw) {
+      return { status: 'blocked', cause: 'keyword', keyword: kw, countdownRemainingMs: null, silent: false };
+    }
+  }
+
+  // 5. 拦截规则
+  const rule = findBlockRule(url, host, input.blockList);
   if (rule) {
+    // 会话倒计时（定时解锁）
     const cd = input.activeCountdowns.find((c) => c.hostname === hNorm);
     if (cd) {
       if (cd.unlocksAt <= now) {
         return { status: 'allowed', cause: 'countdown-done' };
       }
-      return {
-        status: 'blocked',
-        cause: 'rule',
-        rule,
-        countdownRemainingMs: cd.unlocksAt - now,
-      };
+      return { status: 'blocked', cause: 'rule', rule, countdownRemainingMs: cd.unlocksAt - now, silent: false };
     }
-    return { status: 'blocked', cause: 'rule', rule, countdownRemainingMs: null };
+    // 按类型
+    if (rule.blockType === 'permanent') {
+      return { status: 'blocked', cause: 'rule', rule, countdownRemainingMs: null, silent: false };
+    }
+    if (rule.blockType === 'schedule') {
+      if (rule.schedule && isInWindow(rule.schedule, now)) {
+        return { status: 'blocked', cause: 'rule', rule, countdownRemainingMs: null, silent: false };
+      }
+      return { status: 'allowed', cause: 'not-listed' };
+    }
+    if (rule.blockType === 'timewise') {
+      const until = input.activeTimewise[rule.id];
+      if (until != null && until <= now) {
+        return { status: 'allowed', cause: 'not-listed' };
+      }
+      return { status: 'blocked', cause: 'rule', rule, countdownRemainingMs: null, silent: false };
+    }
+    if (rule.blockType === 'attemptwise') {
+      const used = input.attemptState[rule.id] ?? 0;
+      const total = rule.attempts ?? 0;
+      if (total > 0 && used < total) {
+        return { status: 'allowed', cause: 'attempt-allowed', ruleId: rule.id };
+      }
+      return { status: 'blocked', cause: 'rule', rule, countdownRemainingMs: null, silent: false };
+    }
+    // 兜底：永久
+    return { status: 'blocked', cause: 'rule', rule, countdownRemainingMs: null, silent: false };
   }
+
+  // 6. 无规则命中
   return { status: 'allowed', cause: 'not-listed' };
+}
+
+/** 由规则与全局拦截页设置计算最终重定向目标 */
+export function resolveBlockTarget(
+  rule: BlockRule | undefined,
+  blockPage: BlockPageSettings,
+  blockedPageUrl: string,
+): string {
+  if (rule?.redirectUrl) return rule.redirectUrl;
+  if (blockPage.type === 'redirect' && blockPage.redirectUrl) return blockPage.redirectUrl;
+  return blockedPageUrl;
 }

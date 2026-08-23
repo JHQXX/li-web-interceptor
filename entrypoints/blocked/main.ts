@@ -1,9 +1,10 @@
-import { browser } from 'wxt/browser';
-
 import './style.css';
+import { browser } from 'wxt/browser';
 import { send } from '@/utils/messaging';
-import { decideHost, findRule } from '@/utils/rules';
+import { decide, findBlockRule } from '@/utils/rules';
+import { getActiveProfile } from '@/utils/storage';
 import { formatRemaining } from '@/utils/time';
+import type { AppState, BlockRule } from '@/utils/types';
 
 const params = new URLSearchParams(location.search);
 const originalUrl = params.get('url') ?? '';
@@ -11,27 +12,48 @@ const site = params.get('site') ?? '';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
-let state = await send({ type: 'get-state' }).then((r) => r.state);
+let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
+let currentRule: BlockRule | undefined;
+
+function applyTheme() {
+  document.documentElement.dataset.theme = state.theme;
+}
+
+function decisionNow() {
+  const profile = getActiveProfile(state);
+  const url = originalUrl || `https://${site}`;
+  return decide(url, site, {
+    blockList: profile.blockList,
+    whitelist: profile.whitelist,
+    keywords: profile.keywords,
+    keywordBlockingEnabled: profile.settings.keywordBlockingEnabled,
+    whitelistMode: profile.settings.whitelistMode,
+    sessionUnlocks: state.sessionUnlocks,
+    activeCountdowns: state.activeCountdowns,
+    activeTimewise: state.activeTimewise,
+    attemptState: state.attemptState,
+    whitelistAttemptState: state.whitelistAttemptState,
+  });
+}
 
 function render() {
-  const decision = decideHost(site, state, Date.now());
-  const title = state.settings.blockPage.title;
-  const message = state.settings.blockPage.message;
-  const pwdEnabled = state.settings.password.enabled;
-
-  $('title').textContent = title;
-  $('message').textContent = message;
+  const profile = getActiveProfile(state);
+  const decision = decisionNow();
+  $('title').textContent = profile.settings.blockPage.title;
+  $('message').textContent = profile.settings.blockPage.message;
   $('site').textContent = site || '未知网站';
+  currentRule = decision.status === 'blocked' ? decision.rule : undefined;
 
   const countdown = $('countdown');
   const btnContinue = $('btn-continue');
+  const btnTimer = $('btn-timer');
   const btnUnlock = $('btn-unlock');
 
   if (decision.status === 'blocked') {
     btnContinue.classList.add('hidden');
+    btnTimer.classList.remove('hidden');
     btnUnlock.classList.remove('hidden');
-    btnUnlock.textContent = '需要提前访问';
-    if (decision.countdownRemainingMs != null && state.settings.blockPage.showCountdown) {
+    if (decision.countdownRemainingMs != null && profile.settings.blockPage.showCountdown) {
       countdown.classList.remove('hidden');
       countdown.textContent = `距可访问还有 ${formatRemaining(decision.countdownRemainingMs)}`;
     } else {
@@ -41,7 +63,18 @@ function render() {
     countdown.classList.add('hidden');
     btnContinue.classList.remove('hidden');
     btnContinue.textContent = '现在可以访问，继续';
+    btnTimer.classList.add('hidden');
     btnUnlock.classList.add('hidden');
+  }
+
+  // 自动关闭
+  const autoClose = $('auto-close');
+  const sec = profile.settings.blockPage.autoCloseSeconds;
+  if (sec > 0 && decision.status === 'blocked') {
+    autoClose.classList.remove('hidden');
+    autoClose.textContent = `本页将在 ${sec} 秒后自动关闭`;
+  } else {
+    autoClose.classList.add('hidden');
   }
 }
 
@@ -51,27 +84,28 @@ function goBack() {
 }
 
 function openModal() {
-  const pwdEnabled = state.settings.password.enabled;
-  const input = $('pwd-input') as HTMLInputElement;
-  const hint = $('pwd-hint');
-  const unlockOptions = $('unlock-options');
-  const okBtn = $('btn-pwd-ok');
+  const profile = getActiveProfile(state);
+  const pwdEnabled = state.password.enabled;
+  const input = $<HTMLInputElement>('pwd-input');
   input.value = '';
+  $<HTMLInputElement>('sec-input').value = '';
   $('pwd-error').classList.add('hidden');
-
+  $('new-pwd-box').classList.add('hidden');
+  $('unlock-options').classList.add('hidden');
+  $('sec-wrap').classList.add('hidden');
+  $('btn-forget').classList.toggle('hidden', !pwdEnabled);
   if (!pwdEnabled) {
-    hint.textContent = '未启用随机密码保护，可直接操作：';
+    $('pwd-hint').textContent = '未启用随机密码保护，可直接操作：';
     input.classList.add('hidden');
-    okBtn.classList.add('hidden');
-    unlockOptions.classList.remove('hidden');
+    $('btn-pwd-ok').classList.add('hidden');
+    $('unlock-options').classList.remove('hidden');
   } else {
-    hint.textContent = '输入随机密码（仅首次设置时展示一次）：';
+    $('pwd-hint').textContent = '输入随机密码（仅首次设置时展示一次）：';
     input.classList.remove('hidden');
-    okBtn.classList.remove('hidden');
-    unlockOptions.classList.add('hidden');
+    $('btn-pwd-ok').classList.remove('hidden');
+    input.focus();
   }
   $('modal').classList.remove('hidden');
-  if (!input.classList.contains('hidden')) input.focus();
 }
 
 function closeModal() {
@@ -79,17 +113,59 @@ function closeModal() {
 }
 
 async function submitPassword() {
-  const input = $('pwd-input') as HTMLInputElement;
+  const input = $<HTMLInputElement>('pwd-input');
   const { valid } = await send({ type: 'verify-password', payload: { password: input.value } });
   if (!valid) {
-    $('pwd-error').classList.remove('hidden');
+    const err = $('pwd-error');
+    err.textContent = '密码错误，请重试';
+    err.classList.remove('hidden');
+    return;
+  }
+  showUnlockOptions();
+}
+
+function showUnlockOptions() {
+  $('pwd-error').classList.add('hidden');
+  $('pwd-hint').textContent = '请选择操作：';
+  $<HTMLInputElement>('pwd-input').classList.add('hidden');
+  $('btn-pwd-ok').classList.add('hidden');
+  $('btn-forget').classList.add('hidden');
+  $('sec-wrap').classList.add('hidden');
+  $('unlock-options').classList.remove('hidden');
+}
+
+function showSecurityQuestion() {
+  const sec = state.security;
+  if (!sec.question) return;
+  $('pwd-hint').textContent = '忘记密码：回答安全问题进行重置';
+  $<HTMLInputElement>('pwd-input').classList.add('hidden');
+  $('btn-pwd-ok').classList.remove('hidden');
+  $('btn-forget').classList.add('hidden');
+  $('sec-question').textContent = `问题：${sec.question}`;
+  $('sec-wrap').classList.remove('hidden');
+  $<HTMLInputElement>('sec-input').focus();
+}
+
+async function submitSecurityAnswer() {
+  const answer = $<HTMLInputElement>('sec-input').value;
+  const res = await send({ type: 'reset-password-via-security', payload: { answer } });
+  if (!res.ok) {
+    const err = $('pwd-error');
+    err.textContent = res.error ?? '回答错误';
+    err.classList.remove('hidden');
     return;
   }
   $('pwd-error').classList.add('hidden');
-  $('pwd-hint').textContent = '密码正确，请选择操作：';
-  input.classList.add('hidden');
+  $('sec-wrap').classList.add('hidden');
   $('btn-pwd-ok').classList.add('hidden');
-  $('unlock-options').classList.remove('hidden');
+  $('new-pwd-box').classList.remove('hidden');
+  $('new-pwd-value').textContent = res.password;
+  $('pwd-hint').textContent = '已重置密码';
+  // 展示后进入操作选项
+  setTimeout(() => {
+    $('new-pwd-box').classList.add('hidden');
+    showUnlockOptions();
+  }, 6000);
 }
 
 async function sessionUnlockAndGo() {
@@ -99,7 +175,7 @@ async function sessionUnlockAndGo() {
 }
 
 async function removeRuleAndGo() {
-  const rule = findRule(site, state.blockList);
+  const rule = currentRule ?? findBlockRule(originalUrl || `https://${site}`, site, getActiveProfile(state).blockList);
   if (rule) {
     await send({ type: 'remove-block', payload: { id: rule.id } });
     await send({ type: 'remove-countdown', payload: { host: site } });
@@ -107,9 +183,32 @@ async function removeRuleAndGo() {
   goBack();
 }
 
+async function startCountdown() {
+  const profile = getActiveProfile(state);
+  const minutes = Math.max(1, Math.round(profile.settings.blockPage.defaultCountdownMs / 60000));
+  await send({ type: 'start-countdown', payload: { host: site, minutes } });
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  render();
+}
+
+async function autoClose() {
+  const profile = getActiveProfile(state);
+  const sec = profile.settings.blockPage.autoCloseSeconds;
+  if (sec <= 0) return;
+  const tab = await browser.tabs.getCurrent();
+  if (tab?.id != null) {
+    setTimeout(() => browser.tabs.remove(tab.id!).catch(() => {}), sec * 1000);
+  }
+}
+
 $('btn-continue').addEventListener('click', goBack);
+$('btn-timer').addEventListener('click', startCountdown);
 $('btn-unlock').addEventListener('click', openModal);
-$('btn-pwd-ok').addEventListener('click', submitPassword);
+$('btn-pwd-ok').addEventListener('click', () => {
+  if (!$('sec-wrap').classList.contains('hidden')) submitSecurityAnswer();
+  else submitPassword();
+});
+$('btn-forget').addEventListener('click', showSecurityQuestion);
 $('btn-pwd-cancel').addEventListener('click', closeModal);
 $('btn-session').addEventListener('click', sessionUnlockAndGo);
 $('btn-remove').addEventListener('click', removeRuleAndGo);
@@ -120,14 +219,21 @@ $('link-options').addEventListener('click', (e) => {
   e.preventDefault();
   location.href = browser.runtime.getURL('/options.html');
 });
-($('pwd-input') as HTMLInputElement).addEventListener('keydown', (e) => {
+$<HTMLInputElement>('pwd-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') submitPassword();
 });
+$<HTMLInputElement>('sec-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitSecurityAnswer();
+});
 
+applyTheme();
 render();
+autoClose();
+
 setInterval(() => {
-  const decision = decideHost(site, state, Date.now());
-  if (decision.status === 'blocked' && decision.countdownRemainingMs != null) {
+  const decision = decisionNow();
+  const profile = getActiveProfile(state);
+  if (decision.status === 'blocked' && decision.countdownRemainingMs != null && profile.settings.blockPage.showCountdown) {
     $('countdown').textContent = `距可访问还有 ${formatRemaining(decision.countdownRemainingMs)}`;
   } else {
     render();

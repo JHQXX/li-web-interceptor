@@ -1,6 +1,7 @@
 /**
- * 时间/时段工具（纯函数，可单测）。
+ * 时间/时段/番茄钟工具（纯函数，可单测）。
  */
+import type { PomodoroState, TimeWindow } from './types';
 
 export interface ScheduleLike {
   days: number[];
@@ -19,21 +20,24 @@ export function dayOfWeek(date: Date = new Date()): number {
   return date.getDay();
 }
 
-/** 判断当前时间是否落在某个允许时段内（支持跨午夜） */
-export function isInSchedule(schedules: ScheduleLike[], now: number = Date.now()): boolean {
+/** 判断某时刻是否落在某个时段窗口内（支持跨午夜；忽略 enabled 字段） */
+export function isInWindow(window: TimeWindow, now: number = Date.now()): boolean {
   const date = new Date(now);
   const mins = minutesOfDay(date);
   const day = dayOfWeek(date);
+  if (window.days.length > 0 && !window.days.includes(day)) return false;
+  if (window.startMin === window.endMin) return false;
+  if (window.endMin > window.startMin) {
+    return mins >= window.startMin && mins < window.endMin;
+  }
+  return mins >= window.startMin || mins < window.endMin;
+}
+
+/** 判断当前时间是否落在某个允许时段内（兼容旧字段 enabled） */
+export function isInSchedule(schedules: ScheduleLike[], now: number = Date.now()): boolean {
   for (const s of schedules) {
     if (!s.enabled) continue;
-    if (s.days.length > 0 && !s.days.includes(day)) continue;
-    if (s.startMin === s.endMin) continue;
-    if (s.endMin > s.startMin) {
-      if (mins >= s.startMin && mins < s.endMin) return true;
-    } else {
-      // 跨午夜：22:00 -> 02:00
-      if (mins >= s.startMin || mins < s.endMin) return true;
-    }
+    if (isInWindow(s, now)) return true;
   }
   return false;
 }
@@ -61,4 +65,125 @@ export function minToClock(min: number): string {
   const h = Math.floor(min / 60) % 24;
   const m = min % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+/** 本地日期键 YYYY-MM-DD */
+export function dateKey(now: number = Date.now()): string {
+  const d = new Date(now);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+// ---------- 番茄钟 ----------
+
+export function pomodoroInitial(): PomodoroState {
+  return {
+    status: 'idle',
+    focusMinutes: 25,
+    breakMinutes: 5,
+    totalCycles: 1,
+    cycleIndex: 0,
+    endTime: null,
+    pausedRemaining: null,
+    pausedFrom: null,
+    sessionsCompleted: 0,
+  };
+}
+
+/** 剩余秒数（-1 表示不存在进行中的计时） */
+export function pomodoroRemainingSec(state: PomodoroState, now: number = Date.now()): number {
+  if (state.status === 'idle') return -1;
+  if (state.status === 'paused') return state.pausedRemaining ?? 0;
+  if (state.endTime == null) return 0;
+  return Math.max(0, Math.round((state.endTime - now) / 1000));
+}
+
+export function pomodoroStart(
+  state: PomodoroState,
+  focusMinutes: number,
+  breakMinutes: number,
+  totalCycles: number,
+  now: number = Date.now(),
+): PomodoroState {
+  return {
+    ...state,
+    status: 'focus',
+    focusMinutes: Math.max(1, focusMinutes),
+    breakMinutes: Math.max(1, breakMinutes),
+    totalCycles: Math.max(1, totalCycles),
+    cycleIndex: 0,
+    endTime: now + Math.max(1, focusMinutes) * 60_000,
+    pausedRemaining: null,
+    pausedFrom: null,
+  };
+}
+
+export function pomodoroPause(state: PomodoroState, now: number = Date.now()): PomodoroState {
+  if (state.status !== 'focus' && state.status !== 'break') return state;
+  const remaining = state.endTime != null ? Math.max(0, Math.round((state.endTime - now) / 1000)) : 0;
+  return {
+    ...state,
+    status: 'paused',
+    pausedRemaining: remaining,
+    pausedFrom: state.status === 'break' ? 'break' : 'focus',
+    endTime: null,
+  };
+}
+
+export function pomodoroResume(state: PomodoroState, now: number = Date.now()): PomodoroState {
+  if (state.status !== 'paused') return state;
+  const remainingMs = (state.pausedRemaining ?? 0) * 1000;
+  return {
+    ...state,
+    status: state.pausedFrom === 'break' ? 'break' : 'focus',
+    endTime: now + remainingMs,
+    pausedRemaining: null,
+    pausedFrom: null,
+  };
+}
+
+export function pomodoroStop(state: PomodoroState): PomodoroState {
+  return {
+    ...state,
+    status: 'idle',
+    endTime: null,
+    pausedRemaining: null,
+    pausedFrom: null,
+    cycleIndex: 0,
+  };
+}
+
+/** 推进番茄钟：计时结束时的阶段切换（纯函数）。返回变更后的状态与是否变化。 */
+export function pomodoroAdvance(
+  state: PomodoroState,
+  now: number = Date.now(),
+): { state: PomodoroState; changed: boolean } {
+  if (state.status === 'idle' || state.status === 'paused') return { state, changed: false };
+  if (state.endTime == null || now < state.endTime) return { state, changed: false };
+  if (state.status === 'focus') {
+    return {
+      state: { ...state, status: 'break', pausedFrom: null, endTime: now + state.breakMinutes * 60_000, pausedRemaining: null },
+      changed: true,
+    };
+  }
+  const nextCycle = state.cycleIndex + 1;
+  const sessionsCompleted = state.sessionsCompleted + 1;
+  if (nextCycle >= state.totalCycles) {
+    return {
+      state: { ...state, status: 'idle', cycleIndex: 0, endTime: null, sessionsCompleted },
+      changed: true,
+    };
+  }
+  return {
+    state: {
+      ...state,
+      status: 'focus',
+      cycleIndex: nextCycle,
+      endTime: now + state.focusMinutes * 60_000,
+      sessionsCompleted,
+      pausedRemaining: null,
+      pausedFrom: null,
+    },
+    changed: true,
+  };
 }

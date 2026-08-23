@@ -1,11 +1,19 @@
 import './style.css';
 import { send } from '@/utils/messaging';
-import { parseClockToMin, minToClock } from '@/utils/time';
-import type { AppState } from '@/utils/types';
+import { getActiveProfile } from '@/utils/storage';
+import { minToClock, parseClockToMin, formatRemaining, pomodoroRemainingSec } from '@/utils/time';
+import { SECURITY_QUESTIONS } from '@/utils/types';
+import type { AppState, BlockRule, BlockType, MatchMode, TimeWindow, WhitelistType } from '@/utils/types';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
+let pomoTimer: ReturnType<typeof setInterval> | undefined;
+
+const MODE_LABEL: Record<string, string> = { domain: '域名+衍生', contain: '包含', exact: '精确域名', pattern: '通配*', full: '全URL' };
+const BTYPE_LABEL: Record<string, string> = { permanent: '永久', timewise: '计时', attemptwise: '按次', schedule: '排程' };
+const WTYPE_LABEL: Record<string, string> = { permanent: '永久放行', attemptwise: '按次放行', schedule: '排程放行' };
+const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 
 // ---------- Tab 切换 ----------
 document.querySelectorAll<HTMLLIElement>('.tabs-nav li').forEach((li) => {
@@ -19,65 +27,96 @@ document.querySelectorAll<HTMLLIElement>('.tabs-nav li').forEach((li) => {
   });
 });
 
+// ---------- 主题 ----------
+function applyTheme() {
+  document.documentElement.dataset.theme = state.theme;
+}
+
+function refresh() {
+  applyTheme();
+  $<HTMLInputElement>('lock-toggle').checked = state.lockEnabled;
+  $('profile-badge').textContent = `档案：${getActiveProfile(state).name}`;
+  const profile = getActiveProfile(state);
+  const s = profile.settings;
+  $<HTMLInputElement>('wl-mode-global').checked = s.whitelistMode;
+  $<HTMLInputElement>('silent-mode').checked = s.silentMode;
+  $<HTMLInputElement>('kw-enabled').checked = s.keywordBlockingEnabled;
+  $<HTMLInputElement>('history-enabled').checked = state.historyEnabled;
+  $<HTMLInputElement>('theme-dark').checked = state.theme === 'dark';
+  $<HTMLSelectElement>('cooldown-min').value = String(state.cooldownMinutes);
+  $<HTMLInputElement>('bp-title').value = s.blockPage.title;
+  $<HTMLInputElement>('bp-message').value = s.blockPage.message;
+  $<HTMLSelectElement>('bp-type').value = s.blockPage.type;
+  $<HTMLInputElement>('bp-redirect').value = s.blockPage.redirectUrl;
+  $<HTMLInputElement>('bp-autoclose').value = String(s.blockPage.autoCloseSeconds);
+  $<HTMLInputElement>('bp-countdown-toggle').checked = s.blockPage.showCountdown;
+  $<HTMLInputElement>('bp-countdown-min').value = String(Math.round(s.blockPage.defaultCountdownMs / 60000));
+  $<HTMLInputElement>('v-sub').checked = s.variants.includeSubdomains;
+  $<HTMLInputElement>('v-tld').checked = s.variants.includeTldVariants;
+  $<HTMLInputElement>('v-mirror').checked = s.variants.includeKnownMirrors;
+  $<HTMLInputElement>('pwd-toggle').checked = state.password.enabled;
+  renderBlockList();
+  renderWhitelist();
+  renderKeywords();
+  renderHistory();
+  renderProfiles();
+  renderPomodoro();
+}
+
 // ---------- 拦截列表 ----------
 function renderBlockList() {
   const tbody = $('block-tbody');
   tbody.innerHTML = '';
-  if (state.blockList.length === 0) {
+  const profile = getActiveProfile(state);
+  if (profile.blockList.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty">还没有拦截任何网站</td></tr>';
     return;
   }
-  for (const rule of state.blockList) {
+  for (const rule of profile.blockList) {
     const tr = document.createElement('tr');
 
-    const tdHost = document.createElement('td');
+    const td1 = document.createElement('td');
     const host = document.createElement('div');
     host.className = 'hostname';
-    host.textContent = rule.hostname;
-    const patterns = document.createElement('div');
-    patterns.className = 'patterns';
-    patterns.textContent = rule.patterns.join(', ');
-    tdHost.appendChild(host);
-    tdHost.appendChild(patterns);
+    host.textContent = rule.text;
+    td1.appendChild(host);
+    if (rule.matchMode === 'domain' && rule.patterns?.length) {
+      const p = document.createElement('div');
+      p.className = 'patterns';
+      p.textContent = rule.patterns.join(', ');
+      td1.appendChild(p);
+    }
 
-    const tdCount = document.createElement('td');
-    const count = document.createElement('input');
-    count.type = 'number';
-    count.min = '0';
-    count.className = 'mini-input';
-    count.value = rule.options.countdownMs != null ? String(Math.round(rule.options.countdownMs / 60000)) : '0';
-    count.title = '默认倒计时(分钟)，0 表示不自动倒计时';
-    count.addEventListener('change', async () => {
-      const minutes = Math.max(0, Number(count.value) || 0);
-      await send({ type: 'update-block', payload: { id: rule.id, changes: { countdownMs: minutes > 0 ? minutes * 60000 : null } } });
-      state = await send({ type: 'get-state' }).then((r) => r.state);
-    });
-    tdCount.appendChild(count);
+    const td2 = document.createElement('td');
+    td2.textContent = MODE_LABEL[rule.matchMode] ?? rule.matchMode;
 
-    const tdOpts = document.createElement('td');
-    const opts = document.createElement('div');
-    opts.className = 'cell-opts';
-    const subLabel = document.createElement('label');
-    subLabel.innerHTML = '<input type="checkbox" class="mini-check" /> 子域';
-    const subInput = subLabel.querySelector('input')!;
-    subInput.checked = rule.options.includeSubdomains;
-    subInput.addEventListener('change', async () => {
-      await send({ type: 'update-block', payload: { id: rule.id, changes: { includeSubdomains: subInput.checked } } });
-      state = await send({ type: 'get-state' }).then((r) => r.state);
-    });
-    const varLabel = document.createElement('label');
-    varLabel.innerHTML = '<input type="checkbox" class="mini-check" /> 变体/镜像';
-    const varInput = varLabel.querySelector('input')!;
-    varInput.checked = rule.options.includeVariants;
-    varInput.addEventListener('change', async () => {
-      await send({ type: 'update-block', payload: { id: rule.id, changes: { includeVariants: varInput.checked } } });
-      state = await send({ type: 'get-state' }).then((r) => r.state);
-    });
-    opts.appendChild(subLabel);
-    opts.appendChild(varLabel);
-    tdOpts.appendChild(opts);
+    const td3 = document.createElement('td');
+    td3.textContent = `${BTYPE_LABEL[rule.blockType] ?? rule.blockType}${paramText(rule)}`;
 
-    const tdRm = document.createElement('td');
+    const td4 = document.createElement('td');
+    const sw = document.createElement('label');
+    sw.className = 'switch-row';
+    sw.style.cssText = 'gap:6px;font-size:12px;';
+    sw.innerHTML = `<input type="checkbox" class="mini-check" ${rule.status === 'blocked' ? 'checked' : ''}/> ${rule.status === 'blocked' ? '拦截中' : '已暂停'}`;
+    const swInput = sw.querySelector('input')!;
+    swInput.addEventListener('change', async () => {
+      await send({ type: 'set-rule-status', payload: { id: rule.id, status: swInput.checked ? 'blocked' : 'unblocked' } });
+      state = await send({ type: 'get-state' }).then((r) => r.state);
+      renderBlockList();
+    });
+    td4.appendChild(sw);
+
+    const td5 = document.createElement('td');
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:8px;';
+    const redir = document.createElement('input');
+    redir.type = 'text';
+    redir.className = 'rule-redirect';
+    redir.placeholder = '重定向(可选)';
+    redir.value = rule.redirectUrl ?? '';
+    redir.addEventListener('change', async () => {
+      await send({ type: 'update-block', payload: { id: rule.id, changes: { redirectUrl: redir.value.trim() || undefined } } });
+    });
     const rm = document.createElement('button');
     rm.className = 'rm';
     rm.textContent = '✕';
@@ -85,194 +124,401 @@ function renderBlockList() {
     rm.addEventListener('click', async () => {
       await send({ type: 'remove-block', payload: { id: rule.id } });
       state = await send({ type: 'get-state' }).then((r) => r.state);
-      renderBlockList();
+      refresh();
     });
-    tdRm.appendChild(rm);
+    wrap.appendChild(redir);
+    wrap.appendChild(rm);
+    td5.appendChild(wrap);
 
-    tr.appendChild(tdHost);
-    tr.appendChild(tdCount);
-    tr.appendChild(tdOpts);
-    tr.appendChild(tdRm);
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tr.appendChild(td3);
+    tr.appendChild(td4);
+    tr.appendChild(td5);
     tbody.appendChild(tr);
   }
+}
+
+function paramText(rule: BlockRule): string {
+  if (rule.blockType === 'timewise' && rule.durationMs) return ` · ${Math.round(rule.durationMs / 60000)}分`;
+  if (rule.blockType === 'attemptwise') return ` · ${rule.attempts}次`;
+  if (rule.blockType === 'schedule' && rule.schedule) return scheduleText(rule.schedule);
+  return '';
+}
+
+function scheduleText(s: TimeWindow): string {
+  const days = s.days.length === 0 ? '每天' : s.days.map((d) => `周${DAY_NAMES[d]}`).join(' ');
+  return ` · ${days} ${minToClock(s.startMin)}-${minToClock(s.endMin)}`;
 }
 
 // ---------- 白名单 ----------
 function renderWhitelist() {
   const tbody = $('wl-tbody');
   tbody.innerHTML = '';
-  if (state.whitelist.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="empty">白名单为空</td></tr>';
+  const profile = getActiveProfile(state);
+  if (profile.whitelist.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">白名单为空</td></tr>';
     return;
   }
-  for (const rule of state.whitelist) {
+  for (const rule of profile.whitelist) {
     const tr = document.createElement('tr');
-    const tdHost = document.createElement('td');
+    const td1 = document.createElement('td');
     const host = document.createElement('div');
     host.className = 'hostname';
-    host.textContent = rule.hostname;
-    const patterns = document.createElement('div');
-    patterns.className = 'patterns';
-    patterns.textContent = rule.patterns.join(', ');
-    tdHost.appendChild(host);
-    tdHost.appendChild(patterns);
-    const tdRm = document.createElement('td');
+    host.textContent = rule.text;
+    td1.appendChild(host);
+    const td2 = document.createElement('td');
+    td2.textContent = MODE_LABEL[rule.matchMode] ?? rule.matchMode;
+    const td3 = document.createElement('td');
+    td3.textContent = `${WTYPE_LABEL[rule.type] ?? rule.type}${rule.type === 'attemptwise' ? ` · ${rule.attempts}次/日` : ''}${rule.type === 'schedule' && rule.schedule ? scheduleText(rule.schedule) : ''}`;
+    const td4 = document.createElement('td');
+    const sw = document.createElement('label');
+    sw.className = 'switch-row';
+    sw.style.cssText = 'gap:6px;font-size:12px;';
+    sw.innerHTML = `<input type="checkbox" class="mini-check" ${rule.status === 'allowed' ? 'checked' : ''}/> ${rule.status === 'allowed' ? '放行' : '停用'}`;
+    const swInput = sw.querySelector('input')!;
+    swInput.addEventListener('change', async () => {
+      await send({ type: 'set-whitelist-status', payload: { id: rule.id, status: swInput.checked ? 'allowed' : 'not-allowed' } });
+      state = await send({ type: 'get-state' }).then((r) => r.state);
+      renderWhitelist();
+    });
+    td4.appendChild(sw);
+    const td5 = document.createElement('td');
     const rm = document.createElement('button');
     rm.className = 'rm';
     rm.textContent = '✕';
     rm.addEventListener('click', async () => {
       await send({ type: 'remove-whitelist', payload: { id: rule.id } });
       state = await send({ type: 'get-state' }).then((r) => r.state);
-      renderWhitelist();
+      refresh();
     });
-    tdRm.appendChild(rm);
-    tr.appendChild(tdHost);
-    tr.appendChild(tdRm);
+    td5.appendChild(rm);
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tr.appendChild(td3);
+    tr.appendChild(td4);
+    tr.appendChild(td5);
     tbody.appendChild(tr);
   }
 }
 
-// ---------- 允许时段 ----------
-function renderSchedules() {
-  const ul = $('sch-list');
+// ---------- 关键词 ----------
+function renderKeywords() {
+  const ul = $('kw-list');
   ul.innerHTML = '';
-  if (state.schedules.length === 0) {
+  const profile = getActiveProfile(state);
+  if (profile.keywords.length === 0) {
     const li = document.createElement('li');
     li.className = 'empty';
-    li.textContent = '没有设置允许时段';
+    li.textContent = '暂无关键词';
     ul.appendChild(li);
     return;
   }
-  const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
-  for (const s of state.schedules) {
+  for (const k of profile.keywords) {
     const li = document.createElement('li');
-    const left = document.createElement('div');
     const host = document.createElement('span');
     host.className = 'hostname';
-    const days = s.days.length === 0 ? '每天' : s.days.map((d) => `周${DAY_NAMES[d]}`).join(' ');
-    host.textContent = `${days} ${minToClock(s.startMin)} - ${minToClock(s.endMin)}`;
-    left.appendChild(host);
-    const right = document.createElement('div');
-    right.style.cssText = 'display:flex;align-items:center;gap:12px;';
-    const toggleLabel = document.createElement('label');
-    toggleLabel.className = 'switch-row';
-    toggleLabel.textContent = '启用';
+    host.textContent = k.keyword;
+    const actions = document.createElement('div');
+    actions.className = 'actions';
     const sw = document.createElement('label');
-    sw.className = 'switch';
-    sw.innerHTML = '<input type="checkbox" /><span class="slider"></span>';
-    const input = sw.querySelector('input')!;
-    input.checked = s.enabled;
-    input.addEventListener('change', async () => {
-      await send({ type: 'toggle-schedule', payload: { id: s.id, enabled: input.checked } });
+    sw.className = 'switch-row';
+    sw.style.cssText = 'gap:6px;font-size:12px;';
+    sw.innerHTML = `<input type="checkbox" class="mini-check" ${k.enabled ? 'checked' : ''}/> 启用`;
+    const swInput = sw.querySelector('input')!;
+    swInput.addEventListener('change', async () => {
+      await send({ type: 'toggle-keyword', payload: { id: k.id, enabled: swInput.checked } });
       state = await send({ type: 'get-state' }).then((r) => r.state);
     });
-    toggleLabel.appendChild(sw);
     const rm = document.createElement('button');
     rm.className = 'rm';
     rm.textContent = '✕';
     rm.addEventListener('click', async () => {
-      await send({ type: 'remove-schedule', payload: { id: s.id } });
+      await send({ type: 'remove-keyword', payload: { id: k.id } });
       state = await send({ type: 'get-state' }).then((r) => r.state);
-      renderSchedules();
+      renderKeywords();
     });
-    right.appendChild(toggleLabel);
-    right.appendChild(rm);
-    li.appendChild(left);
-    li.appendChild(right);
+    actions.appendChild(sw);
+    actions.appendChild(rm);
+    li.appendChild(host);
+    li.appendChild(actions);
     ul.appendChild(li);
   }
 }
 
-function refresh() {
-  renderBlockList();
-  renderWhitelist();
-  renderSchedules();
-  $<HTMLInputElement>('lock-toggle').checked = state.settings.lockEnabled;
-  $<HTMLInputElement>('pwd-toggle').checked = state.settings.password.enabled;
-  $<HTMLInputElement>('bp-title').value = state.settings.blockPage.title;
-  $<HTMLInputElement>('bp-message').value = state.settings.blockPage.message;
-  $<HTMLInputElement>('bp-countdown-toggle').checked = state.settings.blockPage.showCountdown;
-  $<HTMLInputElement>('bp-countdown-min').value = String(Math.round(state.settings.blockPage.defaultCountdownMs / 60000));
-  $<HTMLInputElement>('v-sub').checked = state.settings.variants.includeSubdomains;
-  $<HTMLInputElement>('v-tld').checked = state.settings.variants.includeTldVariants;
-  $<HTMLInputElement>('v-mirror').checked = state.settings.variants.includeKnownMirrors;
+// ---------- 历史 ----------
+function renderHistory() {
+  const tbody = $('history-tbody');
+  tbody.innerHTML = '';
+  if (state.history.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无拦截记录</td></tr>';
+    return;
+  }
+  const ACTION: Record<string, string> = { blocked: '拦截', silent: '静默', keyword: '关键词', allowlist: '全站白名单' };
+  for (const h of state.history.slice(0, 100)) {
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td');
+    td1.textContent = new Date(h.at).toLocaleString();
+    const td2 = document.createElement('td');
+    const host = document.createElement('span');
+    host.className = 'hostname';
+    host.textContent = h.host;
+    td2.appendChild(host);
+    const td3 = document.createElement('td');
+    td3.textContent = h.label;
+    const td4 = document.createElement('td');
+    td4.textContent = ACTION[h.action] ?? h.action;
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tr.appendChild(td3);
+    tr.appendChild(td4);
+    tbody.appendChild(tr);
+  }
 }
 
-// --- 拦截列表 ---
+// ---------- 档案 ----------
+function renderProfiles() {
+  const ul = $('profile-list');
+  ul.innerHTML = '';
+  for (const p of state.profiles) {
+    const li = document.createElement('li');
+    const left = document.createElement('div');
+    const name = document.createElement('span');
+    name.className = 'hostname';
+    name.textContent = p.name;
+    left.appendChild(name);
+    if (p.id === state.activeProfileId) {
+      const badge = document.createElement('span');
+      badge.className = 'active-badge';
+      badge.textContent = '当前';
+      left.appendChild(badge);
+    }
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    if (p.id !== state.activeProfileId) {
+      const use = document.createElement('button');
+      use.className = 'btn btn-small';
+      use.textContent = '切换';
+      use.addEventListener('click', async () => {
+        await send({ type: 'switch-profile', payload: { id: p.id } });
+        state = await send({ type: 'get-state' }).then((r) => r.state);
+        refresh();
+      });
+      actions.appendChild(use);
+    }
+    const rename = document.createElement('button');
+    rename.className = 'btn btn-small btn-ghost';
+    rename.textContent = '重命名';
+    rename.addEventListener('click', async () => {
+      const name2 = prompt('新名称：', p.name);
+      if (name2) {
+        await send({ type: 'rename-profile', payload: { id: p.id, name: name2 } });
+        state = await send({ type: 'get-state' }).then((r) => r.state);
+        renderProfiles();
+      }
+    });
+    const del = document.createElement('button');
+    del.className = 'btn btn-small btn-danger';
+    del.textContent = '删除';
+    del.disabled = state.profiles.length <= 1 || p.id === state.activeProfileId;
+    del.addEventListener('click', async () => {
+      const res = await send({ type: 'delete-profile', payload: { id: p.id } });
+      if (!res.ok) {
+        alert(res.error ?? '删除失败');
+        return;
+      }
+      state = await send({ type: 'get-state' }).then((r) => r.state);
+      renderProfiles();
+    });
+    actions.appendChild(rename);
+    actions.appendChild(del);
+    li.appendChild(left);
+    li.appendChild(actions);
+    ul.appendChild(li);
+  }
+}
+
+// ---------- 番茄钟 ----------
+function renderPomodoro() {
+  const p = state.pomodoro;
+  const STATUS: Record<string, string> = { idle: '未开始', focus: '🔥 专注中', break: '☕ 休息中', paused: '⏸ 已暂停' };
+  $('pomo-status').textContent = STATUS[p.status] ?? '未开始';
+  const sec = pomodoroRemainingSec(p);
+  $('pomo-time').textContent = sec >= 0 ? formatRemaining(sec * 1000) : `${p.focusMinutes}:00`;
+  $('pomo-sessions').textContent = String(p.sessionsCompleted);
+  $<HTMLInputElement>('pomo-focus').value = String(p.focusMinutes);
+  $<HTMLInputElement>('pomo-break').value = String(p.breakMinutes);
+  $<HTMLInputElement>('pomo-cycles').value = String(p.totalCycles);
+  $('pomo-start').classList.toggle('hidden', p.status !== 'idle');
+  $('pomo-pause').classList.toggle('hidden', p.status !== 'focus' && p.status !== 'break');
+  $('pomo-resume').classList.toggle('hidden', p.status !== 'paused');
+  $('pomo-stop').classList.toggle('hidden', p.status === 'idle');
+}
+
+// ---------- 添加拦截 ----------
 $('btn-add-block').addEventListener('click', async () => {
-  const input = $<HTMLInputElement>('block-input');
-  const host = input.value.trim();
-  if (!host) return;
-  await send({ type: 'add-block', payload: { host } });
-  input.value = '';
+  const text = $<HTMLInputElement>('bl-text').value.trim();
+  if (!text) return;
+  const matchMode = $<HTMLSelectElement>('bl-mode').value as MatchMode;
+  const blockType = $<HTMLSelectElement>('bl-type').value as BlockType;
+  const redirectUrl = $<HTMLInputElement>('bl-redirect').value.trim();
+  await send({
+    type: 'add-block',
+    payload: {
+      text,
+      matchMode,
+      blockType,
+      durationMs: blockType === 'timewise' ? Math.max(1, Number($<HTMLInputElement>('bl-minutes').value) || 30) * 60000 : undefined,
+      attempts: blockType === 'attemptwise' ? Math.max(1, Number($<HTMLInputElement>('bl-attempts').value) || 5) : undefined,
+      schedule: blockType === 'schedule' ? readSchedule('bl-param-schedule') : undefined,
+      redirectUrl: redirectUrl || undefined,
+    },
+  });
+  $<HTMLInputElement>('bl-text').value = '';
   state = await send({ type: 'get-state' }).then((r) => r.state);
   refresh();
 });
-$<HTMLInputElement>('block-input').addEventListener('keydown', (e) => {
+$<HTMLInputElement>('bl-text').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') $<HTMLButtonElement>('btn-add-block').click();
 });
+$<HTMLSelectElement>('bl-type').addEventListener('change', syncBlockParams);
+function syncBlockParams() {
+  const t = $<HTMLSelectElement>('bl-type').value;
+  $('bl-param-timewise').classList.toggle('hidden', t !== 'timewise');
+  $('bl-param-attempt').classList.toggle('hidden', t !== 'attemptwise');
+  $('bl-param-schedule').classList.toggle('hidden', t !== 'schedule');
+}
 
-// --- 白名单 ---
+// ---------- 添加白名单 ----------
 $('btn-add-wl').addEventListener('click', async () => {
-  const input = $<HTMLInputElement>('wl-input');
-  const host = input.value.trim();
-  if (!host) return;
-  await send({ type: 'add-whitelist', payload: { host } });
-  input.value = '';
+  const text = $<HTMLInputElement>('wl-text').value.trim();
+  if (!text) return;
+  const matchMode = $<HTMLSelectElement>('wl-mode').value as MatchMode;
+  const type = $<HTMLSelectElement>('wl-type').value as WhitelistType;
+  await send({
+    type: 'add-whitelist',
+    payload: {
+      text,
+      matchMode,
+      type,
+      attempts: type === 'attemptwise' ? Math.max(1, Number($<HTMLInputElement>('wl-attempts').value) || 10) : undefined,
+      schedule: type === 'schedule' ? readSchedule('wl-param-schedule') : undefined,
+    },
+  });
+  $<HTMLInputElement>('wl-text').value = '';
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  refresh();
+});
+$<HTMLSelectElement>('wl-type').addEventListener('change', syncWlParams);
+function syncWlParams() {
+  const t = $<HTMLSelectElement>('wl-type').value;
+  $('wl-param-attempt').classList.toggle('hidden', t !== 'attemptwise');
+  $('wl-param-schedule').classList.toggle('hidden', t !== 'schedule');
+}
+
+function readSchedule(scopeId: string): TimeWindow {
+  const scope = $(scopeId);
+  const days = [...scope.querySelectorAll<HTMLInputElement>('input[type=checkbox]:checked')].map((i) => Number(i.value));
+  const startInput = scope.querySelector<HTMLInputElement>('input[type=time]');
+  const endInput = scope.querySelectorAll<HTMLInputElement>('input[type=time]')[1];
+  return {
+    days,
+    startMin: parseClockToMin(startInput?.value || '09:00'),
+    endMin: parseClockToMin(endInput?.value || '18:00'),
+  };
+}
+
+// ---------- 关键词 ----------
+$('btn-add-kw').addEventListener('click', async () => {
+  const kw = $<HTMLInputElement>('kw-input').value.trim();
+  if (!kw) return;
+  await send({ type: 'add-keyword', payload: { keyword: kw } });
+  $<HTMLInputElement>('kw-input').value = '';
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  renderKeywords();
+});
+$('kw-enabled').addEventListener('change', async (e) => {
+  await send({ type: 'set-keyword-blocking', payload: { enabled: (e.target as HTMLInputElement).checked } });
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+});
+
+// ---------- 历史 ----------
+$('history-enabled').addEventListener('change', async (e) => {
+  await send({ type: 'set-history-enabled', payload: { enabled: (e.target as HTMLInputElement).checked } });
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+});
+$('btn-clear-history').addEventListener('click', async () => {
+  await send({ type: 'clear-history' });
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  renderHistory();
+});
+
+// ---------- 档案 ----------
+$('btn-add-profile').addEventListener('click', async () => {
+  const name = $<HTMLInputElement>('prof-name').value.trim();
+  const inherit = $<HTMLInputElement>('prof-inherit').checked;
+  await send({ type: 'create-profile', payload: { name, inherit } });
+  $<HTMLInputElement>('prof-name').value = '';
+  $<HTMLInputElement>('prof-inherit').checked = false;
   state = await send({ type: 'get-state' }).then((r) => r.state);
   refresh();
 });
 
-// --- 时段 ---
-$('btn-add-sch').addEventListener('click', async () => {
-  const days = [...document.querySelectorAll<HTMLInputElement>('.days input:checked')].map((i) => Number(i.value));
-  const startMin = parseClockToMin($<HTMLInputElement>('sch-start').value || '09:00');
-  const endMin = parseClockToMin($<HTMLInputElement>('sch-end').value || '18:00');
-  await send({ type: 'add-schedule', payload: { days, startMin, endMin } });
+// ---------- 番茄钟 ----------
+$('pomo-start').addEventListener('click', async () => {
+  await send({
+    type: 'pomodoro-start',
+    payload: {
+      focusMinutes: Number($<HTMLInputElement>('pomo-focus').value) || 25,
+      breakMinutes: Number($<HTMLInputElement>('pomo-break').value) || 5,
+      totalCycles: Number($<HTMLInputElement>('pomo-cycles').value) || 1,
+    },
+  });
   state = await send({ type: 'get-state' }).then((r) => r.state);
-  refresh();
+  renderPomodoro();
 });
+$('pomo-pause').addEventListener('click', async () => { await send({ type: 'pomodoro-pause' }); state = await send({ type: 'get-state' }).then((r) => r.state); renderPomodoro(); });
+$('pomo-resume').addEventListener('click', async () => { await send({ type: 'pomodoro-resume' }); state = await send({ type: 'get-state' }).then((r) => r.state); renderPomodoro(); });
+$('pomo-stop').addEventListener('click', async () => { await send({ type: 'pomodoro-stop' }); state = await send({ type: 'get-state' }).then((r) => r.state); renderPomodoro(); });
 
-// --- 总开关 ---
+// ---------- 总开关 / 全局行为 ----------
 $('lock-toggle').addEventListener('change', async (e) => {
-  await send({ type: 'set-lock-enabled', payload: { enabled: (e.target as HTMLInputElement).checked } });
-  state = await send({ type: 'get-state' }).then((r) => r.state);
-});
-
-// --- 密码 ---
-$('pwd-toggle').addEventListener('change', async (e) => {
-  await send({ type: 'set-password-enabled', payload: { enabled: (e.target as HTMLInputElement).checked } });
-  if ((e.target as HTMLInputElement).checked && !state.settings.password.hash) {
-    $<HTMLButtonElement>('btn-gen-pwd').click();
+  const enabled = (e.target as HTMLInputElement).checked;
+  const res = await send({ type: 'set-lock-enabled', payload: { enabled } });
+  if (!res.ok) {
+    $<HTMLInputElement>('lock-toggle').checked = false;
+    alert(`冷却中，${Math.ceil((res.remainingMs ?? 0) / 60000)} 分钟后可重新开启`);
   }
   state = await send({ type: 'get-state' }).then((r) => r.state);
-  refresh();
 });
-
-$('btn-gen-pwd').addEventListener('click', async () => {
-  const { password } = await send({ type: 'reset-password' });
-  $('pwd-value').textContent = password;
-  $('pwd-show').classList.remove('hidden');
+$('wl-mode-global').addEventListener('change', async (e) => {
+  await send({ type: 'set-whitelist-mode', payload: { enabled: (e.target as HTMLInputElement).checked } });
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+});
+$('silent-mode').addEventListener('change', async (e) => {
+  await send({ type: 'set-silent-mode', payload: { enabled: (e.target as HTMLInputElement).checked } });
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+});
+$('theme-dark').addEventListener('change', async (e) => {
+  await send({ type: 'set-theme', payload: { theme: (e.target as HTMLInputElement).checked ? 'dark' : 'light' } });
   state = await send({ type: 'get-state' }).then((r) => r.state);
   refresh();
 });
-
-$('btn-copy-pwd').addEventListener('click', async () => {
-  const text = $('pwd-value').textContent ?? '';
-  await navigator.clipboard.writeText(text);
-  const btn = $<HTMLButtonElement>('btn-copy-pwd');
-  const old = btn.textContent;
-  btn.textContent = '已复制';
-  setTimeout(() => (btn.textContent = old), 1500);
+$('cooldown-min').addEventListener('change', async () => {
+  await send({ type: 'set-cooldown', payload: { minutes: Number($<HTMLSelectElement>('cooldown-min').value) } });
+  state = await send({ type: 'get-state' }).then((r) => r.state);
 });
 
-// --- 拦截页设置 ---
+// ---------- 拦截页 / 衍生策略 ----------
 $('btn-save-bp').addEventListener('click', async () => {
   await send({
     type: 'set-block-page',
     payload: {
       title: $<HTMLInputElement>('bp-title').value,
       message: $<HTMLInputElement>('bp-message').value,
+      type: $<HTMLSelectElement>('bp-type').value as 'message' | 'redirect',
+      redirectUrl: $<HTMLInputElement>('bp-redirect').value,
+      autoCloseSeconds: Math.max(0, Number($<HTMLInputElement>('bp-autoclose').value) || 0),
       showCountdown: $<HTMLInputElement>('bp-countdown-toggle').checked,
       defaultCountdownMs: Math.max(1, Number($<HTMLInputElement>('bp-countdown-min').value) || 1) * 60000,
     },
@@ -280,8 +526,6 @@ $('btn-save-bp').addEventListener('click', async () => {
   state = await send({ type: 'get-state' }).then((r) => r.state);
   flashMsg('拦截页设置已保存');
 });
-
-// --- 衍生策略 ---
 $('btn-save-variants').addEventListener('click', async () => {
   await send({
     type: 'set-variants',
@@ -298,22 +542,58 @@ $('btn-save-variants').addEventListener('click', async () => {
   flashMsg('衍生策略已保存');
 });
 
-// --- 数据 ---
-$('btn-export').addEventListener('click', async () => {
-  const { json } = await send({ type: 'export-snapshot' });
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `li-web-interceptor-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  flashMsg('已导出数据文件');
+// ---------- 密码与安全问题 ----------
+$('pwd-toggle').addEventListener('change', async (e) => {
+  await send({ type: 'set-password-enabled', payload: { enabled: (e.target as HTMLInputElement).checked } });
+  if ((e.target as HTMLInputElement).checked && !state.password.hash) {
+    $<HTMLButtonElement>('btn-gen-pwd').click();
+  }
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  refresh();
+});
+$('btn-gen-pwd').addEventListener('click', async () => {
+  const res = await send({ type: 'reset-password' });
+  if (!res.ok) return;
+  $('pwd-value').textContent = res.password;
+  $('pwd-show').classList.remove('hidden');
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  refresh();
+});
+$('btn-copy-pwd').addEventListener('click', async () => {
+  const text = $('pwd-value').textContent ?? '';
+  await navigator.clipboard.writeText(text);
+  const btn = $<HTMLButtonElement>('btn-copy-pwd');
+  const old = btn.textContent;
+  btn.textContent = '已复制';
+  setTimeout(() => (btn.textContent = old), 1500);
 });
 
-$('btn-import').addEventListener('click', () => {
-  $<HTMLInputElement>('import-file').click();
+const secSelect = $<HTMLSelectElement>('sec-question');
+for (const q of SECURITY_QUESTIONS) {
+  const opt = document.createElement('option');
+  opt.value = q;
+  opt.textContent = q;
+  secSelect.appendChild(opt);
+}
+$('btn-save-security').addEventListener('click', async () => {
+  const question = secSelect.value;
+  const answer = $<HTMLInputElement>('sec-answer').value.trim();
+  if (!answer) {
+    flashMsg('请填写安全答案', true);
+    return;
+  }
+  const res = await send({ type: 'set-security-question', payload: { question, answer } });
+  flashMsg(res.ok ? '安全问题已保存' : (res.error ?? '保存失败'), !res.ok);
+  $<HTMLInputElement>('sec-answer').value = '';
 });
+
+// ---------- 数据 ----------
+$('btn-export').addEventListener('click', async () => {
+  const { json } = await send({ type: 'export-snapshot' });
+  download(json, `li-web-interceptor-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
+  flashMsg('已导出数据文件');
+});
+$('btn-import').addEventListener('click', () => $<HTMLInputElement>('import-file').click());
 $<HTMLInputElement>('import-file').addEventListener('change', async (e) => {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (!file) return;
@@ -328,7 +608,14 @@ $<HTMLInputElement>('import-file').addEventListener('change', async (e) => {
   }
   (e.target as HTMLInputElement).value = '';
 });
-
+$('btn-export-csv').addEventListener('click', async () => {
+  const r = await send({ type: 'export-csv', payload: { kind: 'block' } });
+  download(r.csv, r.filename, 'text/csv');
+});
+$('btn-export-wl-csv').addEventListener('click', async () => {
+  const r = await send({ type: 'export-csv', payload: { kind: 'whitelist' } });
+  download(r.csv, r.filename, 'text/csv');
+});
 $('btn-reset').addEventListener('click', async () => {
   if (!confirm('确定清空所有拦截数据？此操作不可恢复。')) return;
   await send({ type: 'reset-all' });
@@ -337,12 +624,22 @@ $('btn-reset').addEventListener('click', async () => {
   flashMsg('已清空数据');
 });
 
-// --- 付费同步（禁用态） ---
+// ---------- 同步（禁用态） ----------
 $('btn-sync-test').addEventListener('click', async () => {
   const provider = $<HTMLSelectElement>('sync-provider').value as 'webdav' | 's3';
   const res = await send({ type: 'sync-test', payload: { provider } });
   flashMsg(res.error ?? '连接成功', !res.ok);
 });
+
+function download(content: string, filename: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 let msgTimer: ReturnType<typeof setTimeout> | undefined;
 function flashMsg(text: string, isError = false) {
@@ -353,4 +650,11 @@ function flashMsg(text: string, isError = false) {
   msgTimer = setTimeout(() => (el.textContent = ''), 4000);
 }
 
+syncBlockParams();
+syncWlParams();
 refresh();
+pomoTimer = setInterval(async () => {
+  const r = await send({ type: 'pomodoro-get' });
+  state.pomodoro = r.state;
+  renderPomodoro();
+}, 1000);

@@ -1,63 +1,76 @@
-import { browser } from 'wxt/browser';
-
 import './style.css';
+import { browser } from 'wxt/browser';
 import { send } from '@/utils/messaging';
-import { decideHost, findRule } from '@/utils/rules';
+import { findBlockRule, findWhitelistRule } from '@/utils/rules';
+import { getActiveProfile } from '@/utils/storage';
+import { formatRemaining, pomodoroRemainingSec } from '@/utils/time';
+import type { AppState, BlockType } from '@/utils/types';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
-async function refresh() {
-  const { state } = await send({ type: 'get-state' });
-  const tabInfo = await send({ type: 'get-tab-info' });
-  const host = tabInfo.host;
+let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
+let tabInfo: { url: string | null; host: string | null; tabId?: number } = { url: null, host: null };
+let pomoTimer: ReturnType<typeof setInterval> | undefined;
 
-  $<HTMLInputElement>('lock-toggle').checked = state.settings.lockEnabled;
-  $('block-count').textContent = String(state.blockList.length);
+function applyTheme() {
+  document.documentElement.dataset.theme = state.theme;
+  $('btn-theme').textContent = state.theme === 'dark' ? '☀️' : '🌙';
+}
+
+async function refresh() {
+  const r = await send({ type: 'get-state' });
+  state = r.state;
+  applyTheme();
+  $<HTMLInputElement>('lock-toggle').checked = state.lockEnabled;
+  $('block-count').textContent = String(getActiveProfile(state).blockList.length);
+  $<HTMLInputElement>('wl-mode-toggle').checked = getActiveProfile(state).settings.whitelistMode;
 
   // 当前站点
+  tabInfo = await send({ type: 'get-tab-info' });
+  const host = tabInfo.host;
   if (host) {
     $('current-host').textContent = `当前网站：${host}`;
-    const decision = decideHost(host, state, Date.now());
-    $('btn-block').classList.remove('hidden');
-    $('btn-whitelist').classList.remove('hidden');
-    const isWhitelisted = state.whitelist.some((r) =>
-      r.patterns.some((p) => (p.startsWith('*.') ? host === p.slice(2) || host.endsWith('.' + p.slice(2)) : host === p)),
-    );
+    const profile = getActiveProfile(state);
+    const url = tabInfo.url ?? `https://${host}`;
+    const rule = findBlockRule(url, host, profile.blockList);
+    const wl = findWhitelistRule(url, host, profile.whitelist);
+    const isWhitelisted = wl?.type === 'permanent';
+    $('btn-unblock').classList.toggle('hidden', !rule);
+    if (rule) ($('btn-unblock') as HTMLElement).dataset.ruleId = rule.id;
     if (isWhitelisted) {
-      $('btn-block').classList.add('hidden');
-      $('btn-whitelist').textContent = '已在白名单';
       $<HTMLButtonElement>('btn-whitelist').disabled = true;
+      $<HTMLButtonElement>('btn-whitelist').textContent = '已在白名单';
     } else {
       $<HTMLButtonElement>('btn-whitelist').disabled = false;
-      $('btn-whitelist').textContent = '加入白名单';
-    }
-    $('btn-unblock').classList.toggle('hidden', decision.status !== 'blocked');
-    if (decision.status === 'blocked') {
-      const rule = findRule(host, state.blockList);
-      $('btn-unblock').dataset.ruleId = rule?.id ?? '';
+      $<HTMLButtonElement>('btn-whitelist').textContent = '加入白名单';
     }
   } else {
     $('current-host').textContent = '当前网站：无法识别';
-    $('btn-block').classList.add('hidden');
-    $('btn-whitelist').classList.add('hidden');
     $('btn-unblock').classList.add('hidden');
+    $<HTMLButtonElement>('btn-whitelist').disabled = true;
   }
 
   // 拦截列表
   const ul = $('block-list');
   ul.innerHTML = '';
-  if (state.blockList.length === 0) {
+  const profile = getActiveProfile(state);
+  if (profile.blockList.length === 0) {
     const li = document.createElement('li');
     li.className = 'empty';
     li.textContent = '还没有拦截任何网站';
     ul.appendChild(li);
   } else {
-    for (const rule of state.blockList.slice(0, 20)) {
+    const TYPE: Record<string, string> = { permanent: '永久', timewise: '计时', attemptwise: '按次', schedule: '排程' };
+    for (const rule of profile.blockList.slice(0, 20)) {
       const li = document.createElement('li');
+      const left = document.createElement('div');
+      left.style.cssText = 'display:flex;align-items:center;gap:6px;min-width:0;flex:1;';
       const span = document.createElement('span');
       span.className = 'hostname';
-      span.title = rule.patterns.join(', ');
-      span.textContent = rule.hostname;
+      span.textContent = rule.text;
+      const type = document.createElement('span');
+      type.className = 'type';
+      type.textContent = TYPE[rule.blockType] ?? rule.blockType;
       const rm = document.createElement('button');
       rm.className = 'rm';
       rm.textContent = '✕';
@@ -65,34 +78,64 @@ async function refresh() {
         await send({ type: 'remove-block', payload: { id: rule.id } });
         refresh();
       });
-      li.appendChild(span);
+      left.appendChild(span);
+      left.appendChild(type);
+      li.appendChild(left);
       li.appendChild(rm);
       ul.appendChild(li);
     }
   }
+
+  renderPomodoro();
 }
 
+function renderPomodoro() {
+  const p = state.pomodoro;
+  const STATUS: Record<string, string> = { idle: '🍅 番茄钟', focus: '🔥 专注中', break: '☕ 休息中', paused: '⏸ 已暂停' };
+  $('pomo-status').textContent = STATUS[p.status] ?? '🍅 番茄钟';
+  const sec = pomodoroRemainingSec(p);
+  $('pomo-time').textContent = sec >= 0 ? formatRemaining(sec * 1000) : `${p.focusMinutes}:00`;
+  $('pomo-start').classList.toggle('hidden', p.status !== 'idle');
+  $('pomo-pause').classList.toggle('hidden', p.status !== 'focus' && p.status !== 'break');
+  $('pomo-resume').classList.toggle('hidden', p.status !== 'paused');
+  $('pomo-stop').classList.toggle('hidden', p.status === 'idle');
+}
+
+// --- 总开关 / 主题 / 白名单模式 ---
 $('lock-toggle').addEventListener('change', async (e) => {
-  await send({ type: 'set-lock-enabled', payload: { enabled: (e.target as HTMLInputElement).checked } });
+  const enabled = (e.target as HTMLInputElement).checked;
+  const res = await send({ type: 'set-lock-enabled', payload: { enabled } });
+  if (!res.ok && res.remainingMs != null) {
+    $<HTMLInputElement>('lock-toggle').checked = false;
+    $('current-host').textContent = `冷却中，${Math.ceil(res.remainingMs / 60000)} 分钟后可开启`;
+  }
+  refresh();
+});
+$('btn-theme').addEventListener('click', async () => {
+  await send({ type: 'set-theme', payload: { theme: state.theme === 'dark' ? 'light' : 'dark' } });
+  refresh();
+});
+$('wl-mode-toggle').addEventListener('change', async (e) => {
+  await send({ type: 'set-whitelist-mode', payload: { enabled: (e.target as HTMLInputElement).checked } });
+  refresh();
 });
 
+// --- 快速拦截 / 移除 / 白名单 ---
 $('btn-block').addEventListener('click', async () => {
-  const tabInfo = await send({ type: 'get-tab-info' });
-  if (!tabInfo.host || !tabInfo.tabId || !tabInfo.url) return;
-  // 携带当前标签页信息，background 添加后会自动把当前页重定向到拦截页
-  await send({
-    type: 'add-block',
-    payload: { host: tabInfo.host, tabId: tabInfo.tabId, url: tabInfo.url },
-  });
-  refresh();
+  const host = tabInfo.host;
+  if (!host || !tabInfo.tabId || !tabInfo.url) return;
+  const blockType = ($('block-type') as HTMLSelectElement).value as BlockType;
+  const payload = {
+    text: host,
+    matchMode: 'domain' as const,
+    blockType,
+    durationMs: blockType === 'timewise' ? 30 * 60_000 : undefined,
+    attempts: blockType === 'attemptwise' ? 5 : undefined,
+    tabId: tabInfo.tabId,
+    url: tabInfo.url,
+  };
+  await send({ type: 'add-block', payload });
   window.close();
-});
-
-$('btn-whitelist').addEventListener('click', async () => {
-  const tabInfo = await send({ type: 'get-tab-info' });
-  if (!tabInfo.host) return;
-  await send({ type: 'add-whitelist', payload: { host: tabInfo.host } });
-  refresh();
 });
 
 $('btn-unblock').addEventListener('click', async () => {
@@ -101,9 +144,33 @@ $('btn-unblock').addEventListener('click', async () => {
   refresh();
 });
 
+$('btn-whitelist').addEventListener('click', async () => {
+  const host = tabInfo.host;
+  if (!host) return;
+  await send({ type: 'add-whitelist', payload: { text: host, matchMode: 'domain', type: 'permanent' } });
+  refresh();
+});
+
+// --- 番茄钟 ---
+$('pomo-start').addEventListener('click', async () => {
+  const p = state.pomodoro;
+  await send({ type: 'pomodoro-start', payload: { focusMinutes: p.focusMinutes, breakMinutes: p.breakMinutes, totalCycles: p.totalCycles } });
+  refresh();
+});
+$('pomo-pause').addEventListener('click', async () => { await send({ type: 'pomodoro-pause' }); refresh(); });
+$('pomo-resume').addEventListener('click', async () => { await send({ type: 'pomodoro-resume' }); refresh(); });
+$('pomo-stop').addEventListener('click', async () => { await send({ type: 'pomodoro-stop' }); refresh(); });
+
 $('link-options').addEventListener('click', (e) => {
   e.preventDefault();
   browser.runtime.openOptionsPage();
 });
+
+// 每秒刷新番茄时间
+pomoTimer = setInterval(async () => {
+  const r = await send({ type: 'pomodoro-get' });
+  state.pomodoro = r.state;
+  renderPomodoro();
+}, 1000);
 
 refresh();

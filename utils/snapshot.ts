@@ -1,8 +1,8 @@
 /**
- * 数据快照：导出/导入（也是未来付费同步的数据格式）。
- * 快照有意排除：密码哈希（用户重新设置）、同步凭据。
+ * 数据快照：导出/导入（也是未来同步的数据格式）。
+ * 快照有意排除：密码/安全问题哈希、同步凭据、历史与临时状态。
  */
-import type { AppState } from './types';
+import type { AppState, Profile } from './types';
 import { STATE_VERSION } from './types';
 
 export interface SyncSnapshot {
@@ -10,14 +10,12 @@ export interface SyncSnapshot {
   version: number;
   exportedAt: number;
   data: {
-    blockList: AppState['blockList'];
-    whitelist: AppState['whitelist'];
-    schedules: AppState['schedules'];
-    settings: {
-      lockEnabled: boolean;
-      blockPage: AppState['settings']['blockPage'];
-      variants: AppState['settings']['variants'];
-    };
+    profiles: Profile[];
+    activeProfileId: string;
+    lockEnabled: boolean;
+    cooldownMinutes: number;
+    theme: AppState['theme'];
+    historyEnabled: boolean;
   };
 }
 
@@ -27,14 +25,12 @@ export function buildSnapshot(state: AppState): SyncSnapshot {
     version: STATE_VERSION,
     exportedAt: Date.now(),
     data: {
-      blockList: state.blockList,
-      whitelist: state.whitelist,
-      schedules: state.schedules,
-      settings: {
-        lockEnabled: state.settings.lockEnabled,
-        blockPage: state.settings.blockPage,
-        variants: state.settings.variants,
-      },
+      profiles: state.profiles,
+      activeProfileId: state.activeProfileId,
+      lockEnabled: state.lockEnabled,
+      cooldownMinutes: state.cooldownMinutes,
+      theme: state.theme,
+      historyEnabled: state.historyEnabled,
     },
   };
 }
@@ -46,27 +42,22 @@ export function isSnapshot(x: unknown): x is SyncSnapshot {
   return (
     s.kind === 'liwi-snapshot' &&
     typeof s.version === 'number' &&
-    Array.isArray(s.data?.blockList) &&
-    Array.isArray(s.data?.whitelist) &&
-    Array.isArray(s.data?.schedules)
+    Array.isArray(s.data?.profiles) &&
+    Array.isArray(s.data?.profiles[0]?.blockList)
   );
 }
 
-/** 应用快照到当前状态（保留本地密码与同步配置） */
+/** 应用快照（保留本地密码/安全问题/同步配置/历史/临时状态） */
 export function applySnapshot(state: AppState, snap: SyncSnapshot): AppState {
-  const next: AppState = {
+  return {
     ...state,
-    blockList: snap.data.blockList,
-    whitelist: snap.data.whitelist,
-    schedules: snap.data.schedules,
-    settings: {
-      ...state.settings,
-      lockEnabled: snap.data.settings.lockEnabled,
-      blockPage: snap.data.settings.blockPage,
-      variants: snap.data.settings.variants,
-    },
+    profiles: snap.data.profiles,
+    activeProfileId: snap.data.activeProfileId,
+    lockEnabled: snap.data.lockEnabled,
+    cooldownMinutes: snap.data.cooldownMinutes,
+    theme: snap.data.theme,
+    historyEnabled: snap.data.historyEnabled,
   };
-  return next;
 }
 
 export function serializeSnapshot(snap: SyncSnapshot): string {

@@ -11,10 +11,11 @@
         <span class="logo-icon">🛡️</span>
         <div class="logo-title">
           <span class="app-name">LI 网站拦截器</span>
-          <span class="version_name">v0.1</span>
+          <span class="version_name">v2</span>
         </div>
       </div>
       <div class="header-right">
+        <span id="profile-badge" class="profile-badge"></span>
         <label class="switch-row">启用拦截
           <label class="switch"><input id="lock-toggle" type="checkbox" /><span class="slider"></span></label>
         </label>
@@ -24,128 +25,255 @@
     <nav class="tabs-nav">
       <li data-tab="block" class="tab-active"><a href="javascript:void(0)">拦截列表</a></li>
       <li data-tab="whitelist"><a href="javascript:void(0)">白名单</a></li>
-      <li data-tab="schedule"><a href="javascript:void(0)">允许时段</a></li>
+      <li data-tab="keyword"><a href="javascript:void(0)">关键词</a></li>
+      <li data-tab="history"><a href="javascript:void(0)">历史</a></li>
+      <li data-tab="profile"><a href="javascript:void(0)">档案</a></li>
+      <li data-tab="pomodoro"><a href="javascript:void(0)">番茄钟</a></li>
       <li data-tab="settings"><a href="javascript:void(0)">设置</a></li>
       <li data-tab="data"><a href="javascript:void(0)">数据</a></li>
       <li data-tab="sync"><a href="javascript:void(0)">同步</a></li>
     </nav>
 
     <main class="main-tabs">
-      <!-- 拦截列表 -->
+      <!-- ============ 拦截列表 ============ -->
       <section id="tab-block" class="tab-panel">
-        <div class="add-row">
-          <input id="block-input" type="text" placeholder="输入要拦截的域名，如 youtube.com" />
-          <button id="btn-add-block" class="btn btn-primary">添加</button>
+        <div class="add-box">
+          <div class="add-row">
+            <input id="bl-text" type="text" placeholder="输入域名 / 关键字 / URL / 通配（* 表示全部）" />
+            <button id="btn-add-block" class="btn btn-primary">添加</button>
+          </div>
+          <div class="add-row2">
+            <label>匹配 <select id="bl-mode">
+              <option value="domain">域名+衍生</option>
+              <option value="contain">包含关键字</option>
+              <option value="exact">精确域名</option>
+              <option value="pattern">通配 *</option>
+              <option value="full">全 URL 精确</option>
+            </select></label>
+            <label>类型 <select id="bl-type">
+              <option value="permanent">永久</option>
+              <option value="timewise">计时</option>
+              <option value="attemptwise">按次</option>
+              <option value="schedule">排程</option>
+            </select></label>
+            <span id="bl-param-timewise" class="param hidden">分钟 <input id="bl-minutes" type="number" min="1" value="30" class="mini-input" /></span>
+            <span id="bl-param-attempt" class="param hidden">次数 <input id="bl-attempts" type="number" min="1" value="5" class="mini-input" /></span>
+            <span id="bl-param-schedule" class="param hidden">
+              <span class="days">
+                <label><input type="checkbox" value="1" /> 一</label><label><input type="checkbox" value="2" /> 二</label>
+                <label><input type="checkbox" value="3" /> 三</label><label><input type="checkbox" value="4" /> 四</label>
+                <label><input type="checkbox" value="5" /> 五</label><label><input type="checkbox" value="6" /> 六</label>
+                <label><input type="checkbox" value="0" /> 日</label>
+              </span>
+              <input id="bl-sch-start" type="time" value="09:00" class="time" />至<input id="bl-sch-end" type="time" value="18:00" class="time" />
+            </span>
+            <label>重定向(可选) <input id="bl-redirect" type="text" placeholder="https://…" class="wide" /></label>
+          </div>
         </div>
-        <p class="tip">添加后自动扩展子域名、常见 TLD 变体与已知镜像站；可在下方策略中调整，也可在每条规则上开关。</p>
         <div class="table-wrap">
           <table class="list-table">
-            <thead>
-              <tr><th>网站</th><th>匹配模式</th><th>默认倒计时(分)</th><th>选项</th><th></th></tr>
-            </thead>
+            <thead><tr><th>网站</th><th>匹配</th><th>类型</th><th>状态</th><th></th></tr></thead>
             <tbody id="block-tbody"></tbody>
           </table>
         </div>
       </section>
 
-      <!-- 白名单 -->
+      <!-- ============ 白名单 ============ -->
       <section id="tab-whitelist" class="tab-panel hidden">
-        <div class="add-row">
-          <input id="wl-input" type="text" placeholder="输入放行域名，如 mail.google.com" />
-          <button id="btn-add-wl" class="btn btn-primary">添加</button>
+        <div class="add-box">
+          <div class="add-row">
+            <input id="wl-text" type="text" placeholder="输入放行域名 / 关键字 / URL" />
+            <button id="btn-add-wl" class="btn btn-primary">添加</button>
+          </div>
+          <div class="add-row2">
+            <label>匹配 <select id="wl-mode">
+              <option value="domain">域名+衍生</option>
+              <option value="contain">包含关键字</option>
+              <option value="exact">精确域名</option>
+              <option value="pattern">通配 *</option>
+              <option value="full">全 URL 精确</option>
+            </select></label>
+            <label>类型 <select id="wl-type">
+              <option value="permanent">永久放行</option>
+              <option value="attemptwise">按次放行</option>
+              <option value="schedule">排程放行</option>
+            </select></label>
+            <span id="wl-param-attempt" class="param hidden">每日次数 <input id="wl-attempts" type="number" min="1" value="10" class="mini-input" /></span>
+            <span id="wl-param-schedule" class="param hidden">
+              <span class="days">
+                <label><input type="checkbox" value="1" /> 一</label><label><input type="checkbox" value="2" /> 二</label>
+                <label><input type="checkbox" value="3" /> 三</label><label><input type="checkbox" value="4" /> 四</label>
+                <label><input type="checkbox" value="5" /> 五</label><label><input type="checkbox" value="6" /> 六</label>
+                <label><input type="checkbox" value="0" /> 日</label>
+              </span>
+              <input id="wl-sch-start" type="time" value="09:00" class="time" />至<input id="wl-sch-end" type="time" value="18:00" class="time" />
+            </span>
+          </div>
         </div>
         <div class="table-wrap">
           <table class="list-table">
-            <thead><tr><th>放行域名</th><th>匹配模式</th><th></th></tr></thead>
+            <thead><tr><th>放行域名</th><th>匹配</th><th>类型</th><th>状态</th><th></th></tr></thead>
             <tbody id="wl-tbody"></tbody>
           </table>
         </div>
       </section>
 
-      <!-- 允许时段 -->
-      <section id="tab-schedule" class="tab-panel hidden">
+      <!-- ============ 关键词 ============ -->
+      <section id="tab-keyword" class="tab-panel hidden">
         <div class="card">
-          <h2>固定允许时段（定期解锁）</h2>
-          <div class="schedule-form">
-            <div class="days">
-              <label><input type="checkbox" value="1" /> 一</label>
-              <label><input type="checkbox" value="2" /> 二</label>
-              <label><input type="checkbox" value="3" /> 三</label>
-              <label><input type="checkbox" value="4" /> 四</label>
-              <label><input type="checkbox" value="5" /> 五</label>
-              <label><input type="checkbox" value="6" /> 六</label>
-              <label><input type="checkbox" value="0" /> 日</label>
-            </div>
-            <div class="time-row">
-              <input id="sch-start" type="time" value="09:00" />
-              <span>至</span>
-              <input id="sch-end" type="time" value="18:00" />
-              <button id="btn-add-sch" class="btn btn-primary">添加时段</button>
-            </div>
+          <div class="add-row">
+            <input id="kw-input" type="text" placeholder="输入关键字，如：购物、视频" />
+            <button id="btn-add-kw" class="btn btn-primary">添加</button>
           </div>
+          <label class="switch-row">启用关键词拦截
+            <label class="switch"><input id="kw-enabled" type="checkbox" /><span class="slider"></span></label>
+          </label>
+          <p class="tip">开启后，任何包含关键字的 URL 都会被拦截。</p>
         </div>
-        <ul id="sch-list" class="sch-list"></ul>
+        <ul id="kw-list" class="kw-list"></ul>
       </section>
 
-      <!-- 设置 -->
+      <!-- ============ 历史 ============ -->
+      <section id="tab-history" class="tab-panel hidden">
+        <div class="card">
+          <div class="row">
+            <label class="switch-row">记录历史
+              <label class="switch"><input id="history-enabled" type="checkbox" /><span class="slider"></span></label>
+            </label>
+            <button id="btn-clear-history" class="btn btn-ghost">清空历史</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="list-table">
+            <thead><tr><th>时间</th><th>网站</th><th>命中</th><th>方式</th></tr></thead>
+            <tbody id="history-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ 档案 ============ -->
+      <section id="tab-profile" class="tab-panel hidden">
+        <div class="card">
+          <div class="add-row">
+            <input id="prof-name" type="text" placeholder="新档案名称，如：工作 / 学习" />
+            <label class="inherit"><input id="prof-inherit" type="checkbox" /> 继承当前档案数据</label>
+            <button id="btn-add-profile" class="btn btn-primary">新建档案</button>
+          </div>
+          <p class="tip">每个档案拥有独立的拦截列表、白名单、关键词与设置，一键切换场景。</p>
+        </div>
+        <ul id="profile-list" class="kw-list"></ul>
+      </section>
+
+      <!-- ============ 番茄钟 ============ -->
+      <section id="tab-pomodoro" class="tab-panel hidden">
+        <div class="card">
+          <h2>番茄钟</h2>
+          <div class="add-row2">
+            <label>专注(分) <input id="pomo-focus" type="number" min="1" value="25" class="mini-input" /></label>
+            <label>休息(分) <input id="pomo-break" type="number" min="1" value="5" class="mini-input" /></label>
+            <label>轮数 <input id="pomo-cycles" type="number" min="1" value="4" class="mini-input" /></label>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <span id="pomo-status" class="pomo-status"></span>
+            <span id="pomo-time" class="pomo-time"></span>
+            <button id="pomo-start" class="btn btn-primary">开始</button>
+            <button id="pomo-pause" class="btn hidden">暂停</button>
+            <button id="pomo-resume" class="btn hidden">继续</button>
+            <button id="pomo-stop" class="btn btn-danger hidden">停止</button>
+          </div>
+          <p class="tip">今日完成 <span id="pomo-sessions">0</span> 个专注。</p>
+        </div>
+      </section>
+
+      <!-- ============ 设置 ============ -->
       <section id="tab-settings" class="tab-panel hidden">
         <div class="card">
-          <h2>随机密码保护</h2>
-          <p class="tip">开启后，修改拦截列表 / 提前解锁需要输入随机密码。密码只在生成时展示一次，忘记后可重新生成。</p>
+          <h2>拦截页设置</h2>
+          <div class="field"><label>标题</label><input id="bp-title" type="text" /></div>
+          <div class="field"><label>提示文字</label><input id="bp-message" type="text" /></div>
+          <div class="field">
+            <label>命中后动作</label>
+            <select id="bp-type">
+              <option value="message">展示内置拦截页</option>
+              <option value="redirect">重定向到 URL</option>
+            </select>
+          </div>
+          <div class="field"><label>重定向 URL（可选）</label><input id="bp-redirect" type="text" placeholder="https://…" /></div>
+          <div class="field"><label>N 秒后自动关闭（0=不关闭）</label><input id="bp-autoclose" type="number" min="0" value="0" class="mini-input" /></div>
+          <div class="field"><label class="switch-row">显示倒计时
+            <label class="switch"><input id="bp-countdown-toggle" type="checkbox" /><span class="slider"></span></label>
+          </label></div>
+          <div class="field"><label>“定时解锁”默认时长（分钟）</label><input id="bp-countdown-min" type="number" min="1" value="30" class="mini-input" /></div>
+          <button id="btn-save-bp" class="btn btn-primary">保存拦截页设置</button>
+        </div>
+
+        <div class="card">
+          <h2>衍生网站默认策略</h2>
+          <div class="field"><label class="switch-row">拦截所有子域名
+            <label class="switch"><input id="v-sub" type="checkbox" /><span class="slider"></span></label>
+          </label></div>
+          <div class="field"><label class="switch-row">拦截常见 TLD 变体（.com/.cn/.net 等）
+            <label class="switch"><input id="v-tld" type="checkbox" /><span class="slider"></span></label>
+          </label></div>
+          <div class="field"><label class="switch-row">拦截已知镜像站（如 youtube.com ↔ youtu.be）
+            <label class="switch"><input id="v-mirror" type="checkbox" /><span class="slider"></span></label>
+          </label></div>
+          <button id="btn-save-variants" class="btn btn-primary">保存衍生策略</button>
+        </div>
+
+        <div class="card">
+          <h2>密码与安全问题</h2>
           <div class="row">
             <label class="switch-row">启用密码
               <label class="switch"><input id="pwd-toggle" type="checkbox" /><span class="slider"></span></label>
             </label>
             <button id="btn-gen-pwd" class="btn">生成新密码</button>
           </div>
-          <div id="pwd-show" class="pwd-show hidden">
-            <strong>新密码（仅展示一次，请抄写保存）：</strong>
-            <code id="pwd-value"></code>
-            <button id="btn-copy-pwd" class="btn btn-small">复制</button>
+          <div id="pwd-show" class="pwd-show hidden"><strong>新密码（仅展示一次，请抄写保存）：</strong><code id="pwd-value"></code><button id="btn-copy-pwd" class="btn btn-small">复制</button></div>
+          <div class="field" style="margin-top:12px;">
+            <label>安全问题（用于忘记密码找回）</label>
+            <select id="sec-question"></select>
+          </div>
+          <div class="field"><label>安全答案</label><input id="sec-answer" type="text" /></div>
+          <button id="btn-save-security" class="btn">保存安全问题</button>
+        </div>
+
+        <div class="card">
+          <h2>行为</h2>
+          <div class="field"><label class="switch-row">全站白名单模式（除白名单外全部拦截）
+            <label class="switch"><input id="wl-mode-global" type="checkbox" /><span class="slider"></span></label>
+          </label></div>
+          <div class="field"><label class="switch-row">静默拦截（命中后直接关闭标签页）
+            <label class="switch"><input id="silent-mode" type="checkbox" /><span class="slider"></span></label>
+          </label></div>
+          <div class="field"><label>禁用冷却（分钟，关闭总开关后需等待才能重开）</label>
+            <select id="cooldown-min">
+              <option value="0">0（不启用）</option>
+              <option value="1">1</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="30">30</option>
+            </select>
           </div>
         </div>
 
         <div class="card">
-          <h2>拦截页设置</h2>
-          <div class="field"><label>标题</label><input id="bp-title" type="text" /></div>
-          <div class="field"><label>提示文字</label><input id="bp-message" type="text" /></div>
-          <div class="field">
-            <label class="switch-row">显示倒计时
-              <label class="switch"><input id="bp-countdown-toggle" type="checkbox" /><span class="slider"></span></label>
-            </label>
-          </div>
-          <div class="field"><label>默认倒计时（分钟）</label><input id="bp-countdown-min" type="number" min="1" step="1" /></div>
-          <button id="btn-save-bp" class="btn btn-primary">保存拦截页设置</button>
-        </div>
-
-        <div class="card">
-          <h2>衍生网站默认策略</h2>
-          <div class="field">
-            <label class="switch-row">拦截所有子域名
-              <label class="switch"><input id="v-sub" type="checkbox" /><span class="slider"></span></label>
-            </label>
-          </div>
-          <div class="field">
-            <label class="switch-row">拦截常见 TLD 变体（.com/.cn/.net 等）
-              <label class="switch"><input id="v-tld" type="checkbox" /><span class="slider"></span></label>
-            </label>
-          </div>
-          <div class="field">
-            <label class="switch-row">拦截已知镜像站（如 youtube.com ↔ youtu.be）
-              <label class="switch"><input id="v-mirror" type="checkbox" /><span class="slider"></span></label>
-            </label>
-          </div>
-          <button id="btn-save-variants" class="btn btn-primary">保存衍生策略</button>
+          <h2>外观</h2>
+          <div class="field"><label class="switch-row">深色模式
+            <label class="switch"><input id="theme-dark" type="checkbox" /><span class="slider"></span></label>
+          </label></div>
         </div>
       </section>
 
-      <!-- 数据 -->
+      <!-- ============ 数据 ============ -->
       <section id="tab-data" class="tab-panel hidden">
         <div class="card">
           <h2>数据管理</h2>
           <div class="row">
             <button id="btn-export" class="btn">导出 JSON</button>
             <button id="btn-import" class="btn">导入 JSON</button>
+            <button id="btn-export-csv" class="btn btn-secondary">导出拦截列表 CSV</button>
+            <button id="btn-export-wl-csv" class="btn btn-secondary">导出白名单 CSV</button>
             <button id="btn-reset" class="btn btn-danger">清空数据</button>
             <input id="import-file" type="file" accept=".json,application/json" class="hidden" />
           </div>
@@ -153,18 +281,12 @@
         </div>
       </section>
 
-      <!-- 付费同步（禁用态） -->
+      <!-- ============ 同步 ============ -->
       <section id="tab-sync" class="tab-panel hidden">
         <div class="card">
-          <h2>付费同步 <span class="tag">即将上线</span></h2>
-          <p class="tip">将拦截列表、白名单、时段等数据同步到你自己的存储空间（WebDAV / S3），跨设备保持一致。功能开发中。</p>
-          <div class="field">
-            <label>存储类型</label>
-            <select id="sync-provider">
-              <option value="webdav">WebDAV</option>
-              <option value="s3">S3</option>
-            </select>
-          </div>
+          <h2>WebDAV / S3 同步 <span class="tag">即将上线</span></h2>
+          <p class="tip">将拦截列表、白名单、关键词、档案等数据同步到你自己的存储空间（WebDAV / S3），跨设备保持一致。免费功能，开发中。</p>
+          <div class="field"><label>存储类型</label><select id="sync-provider"><option value="webdav">WebDAV</option><option value="s3">S3</option></select></div>
           <div class="field"><label>存储地址 / Endpoint</label><input id="sync-endpoint" type="text" disabled /></div>
           <div class="field"><label>路径 / Bucket</label><input id="sync-path" type="text" disabled /></div>
           <div class="field"><label>账号 / Access Key</label><input id="sync-user" type="text" disabled /></div>
