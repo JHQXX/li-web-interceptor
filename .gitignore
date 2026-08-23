@@ -31,3 +31,8 @@ coverage
 # 构建产物（根目录残留目录也忽略）
 chrome-mv3
 chrome-mv3-dev
+
+# 构建输出
+.output
+dist
+dist-*

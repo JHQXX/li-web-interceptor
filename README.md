@@ -48,7 +48,7 @@
 ```bash
 npm install
 npm run dev        # 开发模式（HMR）
-npm run build      # 生产构建 -> .output/chrome-mv3
+npm run build      # 生产构建 -> dist/chrome-mv3
 npm run zip        # 构建并打包 zip
 npm test           # 单元测试
 npm run compile    # TypeScript 类型检查
@@ -57,7 +57,7 @@ npm run compile    # TypeScript 类型检查
 ### 在浏览器中加载
 1. 打开 `chrome://extensions`（Edge 为 `edge://extensions`）；
 2. 开启「开发者模式」；
-3. 点击「加载已解压的扩展程序」，选择 `.output/chrome-mv3` 目录；
+3. 点击「加载已解压的扩展程序」，选择 `dist/chrome-mv3` 目录；
 4. 首次加载会从旧版数据自动迁移。
 
 ## 目录结构

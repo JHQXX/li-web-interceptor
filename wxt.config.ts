@@ -2,6 +2,8 @@ import { defineConfig } from 'wxt';
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
+  // 输出到可见的 dist/ 目录，避免 macOS 文件选择框隐藏 .output（dotfile）
+  outDir: 'dist',
   manifest: {
     default_locale: 'zh_CN',
     name: '__MSG_appName__',
