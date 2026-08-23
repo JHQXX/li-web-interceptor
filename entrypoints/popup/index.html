@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>网站拦截器</title>
+  </head>
+  <body>
+    <header class="header">
+      <div class="brand">🛡️ 网站拦截器</div>
+      <label class="switch">
+        <input id="lock-toggle" type="checkbox" />
+        <span class="slider"></span>
+      </label>
+    </header>
+
+    <section class="current">
+      <div id="current-host" class="host">当前网站：--</div>
+      <div class="row">
+        <button id="btn-block" class="btn primary">拦截本站</button>
+        <button id="btn-whitelist" class="btn">加入白名单</button>
+      </div>
+      <button id="btn-unblock" class="btn danger hidden">从拦截中移除本站</button>
+    </section>
+
+    <section class="list-section">
+      <h3>已拦截（<span id="block-count">0</span>）</h3>
+      <ul id="block-list" class="list"></ul>
+    </section>
+
+    <footer>
+      <a id="link-options" href="#">设置</a>
+    </footer>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

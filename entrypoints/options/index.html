@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>网站拦截器 - 设置</title>
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>🛡️ 网站拦截器设置</h1>
+      <label class="switch-row">
+        启用拦截
+        <label class="switch"><input id="lock-toggle" type="checkbox" /><span class="slider"></span></label>
+      </label>
+    </header>
+
+    <main class="container">
+      <!-- 拦截列表 -->
+      <section class="card">
+        <h2>拦截列表</h2>
+        <div class="add-row">
+          <input id="block-input" type="text" placeholder="输入要拦截的域名，如 youtube.com" />
+          <button id="btn-add-block" class="btn primary">添加</button>
+        </div>
+        <p class="tip">添加后会自动扩展子域名、常见 TLD 变体与已知镜像站（可在下方调整默认策略，也可在每条规则上开关）。</p>
+        <ul id="block-list" class="list"></ul>
+      </section>
+
+      <!-- 白名单 -->
+      <section class="card">
+        <h2>白名单</h2>
+        <div class="add-row">
+          <input id="wl-input" type="text" placeholder="输入放行域名，如 mail.google.com" />
+          <button id="btn-add-wl" class="btn primary">添加</button>
+        </div>
+        <ul id="wl-list" class="list"></ul>
+      </section>
+
+      <!-- 允许时段 -->
+      <section class="card">
+        <h2>固定允许时段（定期解锁）</h2>
+        <div class="schedule-form">
+          <div class="days">
+            <label><input type="checkbox" value="1" /> 一</label>
+            <label><input type="checkbox" value="2" /> 二</label>
+            <label><input type="checkbox" value="3" /> 三</label>
+            <label><input type="checkbox" value="4" /> 四</label>
+            <label><input type="checkbox" value="5" /> 五</label>
+            <label><input type="checkbox" value="6" /> 六</label>
+            <label><input type="checkbox" value="0" /> 日</label>
+          </div>
+          <div class="time-row">
+            <input id="sch-start" type="time" value="09:00" />
+            <span>至</span>
+            <input id="sch-end" type="time" value="18:00" />
+            <button id="btn-add-sch" class="btn primary">添加时段</button>
+          </div>
+        </div>
+        <ul id="sch-list" class="list"></ul>
+      </section>
+
+      <!-- 随机密码 -->
+      <section class="card">
+        <h2>随机密码保护</h2>
+        <p class="tip">开启后，修改拦截列表 / 提前解锁需要输入随机密码。密码只在生成时展示一次，忘记后可重新生成。</p>
+        <div class="row">
+          <label class="switch-row">
+            启用密码
+            <label class="switch"><input id="pwd-toggle" type="checkbox" /><span class="slider"></span></label>
+          </label>
+          <button id="btn-gen-pwd" class="btn">生成新密码</button>
+        </div>
+        <div id="pwd-show" class="pwd-show hidden">
+          <strong>新密码（仅展示一次，请抄写保存）：</strong>
+          <code id="pwd-value"></code>
+          <button id="btn-copy-pwd" class="btn small">复制</button>
+        </div>
+      </section>
+
+      <!-- 拦截页设置 -->
+      <section class="card">
+        <h2>拦截页设置</h2>
+        <div class="field">
+          <label>标题</label>
+          <input id="bp-title" type="text" />
+        </div>
+        <div class="field">
+          <label>提示文字</label>
+          <input id="bp-message" type="text" />
+        </div>
+        <div class="field">
+          <label class="switch-row">
+            显示倒计时
+            <label class="switch"><input id="bp-countdown-toggle" type="checkbox" /><span class="slider"></span></label>
+          </label>
+        </div>
+        <div class="field">
+          <label>默认倒计时（分钟）</label>
+          <input id="bp-countdown-min" type="number" min="1" step="1" />
+        </div>
+        <button id="btn-save-bp" class="btn">保存拦截页设置</button>
+      </section>
+
+      <!-- 衍生策略 -->
+      <section class="card">
+        <h2>衍生网站默认策略</h2>
+        <div class="field">
+          <label class="switch-row">
+            拦截所有子域名
+            <label class="switch"><input id="v-sub" type="checkbox" /><span class="slider"></span></label>
+          </label>
+        </div>
+        <div class="field">
+          <label class="switch-row">
+            拦截常见 TLD 变体（.com/.cn/.net 等）
+            <label class="switch"><input id="v-tld" type="checkbox" /><span class="slider"></span></label>
+          </label>
+        </div>
+        <div class="field">
+          <label class="switch-row">
+            拦截已知镜像站（如 youtube.com ↔ youtu.be）
+            <label class="switch"><input id="v-mirror" type="checkbox" /><span class="slider"></span></label>
+          </label>
+        </div>
+        <button id="btn-save-variants" class="btn">保存衍生策略</button>
+      </section>
+
+      <!-- 数据 -->
+      <section class="card">
+        <h2>数据管理</h2>
+        <div class="row">
+          <button id="btn-export" class="btn">导出 JSON</button>
+          <button id="btn-import" class="btn">导入 JSON</button>
+          <button id="btn-reset" class="btn danger">清空数据</button>
+          <input id="import-file" type="file" accept=".json,application/json" class="hidden" />
+        </div>
+        <p id="data-msg" class="data-msg"></p>
+      </section>
+
+      <!-- 付费同步 -->
+      <section class="card sync-card">
+        <h2>付费同步 <span class="tag">即将上线</span></h2>
+        <p class="tip">将拦截列表、白名单、时段等数据同步到你自己的存储空间（WebDAV / S3），跨设备保持一致。功能开发中。</p>
+        <div class="field">
+          <label>存储类型</label>
+          <select id="sync-provider">
+            <option value="webdav">WebDAV</option>
+            <option value="s3">S3</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>存储地址 / Endpoint</label>
+          <input id="sync-endpoint" type="text" placeholder="https://dav.example.com / https://s3.region.amazonaws.com" disabled />
+        </div>
+        <div class="field">
+          <label>路径 / Bucket</label>
+          <input id="sync-path" type="text" placeholder="/liwi/sync.json / my-bucket" disabled />
+        </div>
+        <div class="field">
+          <label>账号 / Access Key</label>
+          <input id="sync-user" type="text" placeholder="用户名 / AccessKey" disabled />
+        </div>
+        <div class="field">
+          <label>密码 / Secret Key</label>
+          <input id="sync-pass" type="password" placeholder="密码 / SecretKey" disabled />
+        </div>
+        <button id="btn-sync-test" class="btn" disabled>测试连接</button>
+      </section>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
