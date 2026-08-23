@@ -189,6 +189,8 @@ export interface AppState {
   security: SecuritySettings;
   sync: SyncSettings;
   pomodoro: PomodoroState;
+  /** 番茄会话按天重置的日期（YYYY-MM-DD） */
+  pomodoroDay: string;
   history: HistoryEntry[];
   sessionUnlocks: SessionUnlock[];
   activeCountdowns: ActiveCountdown[];

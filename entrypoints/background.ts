@@ -8,6 +8,7 @@ import {
   pushHistory,
   pruneState,
   resetAttemptCountersIfNewDay,
+  resetPomodoroDayIfNewDay,
 } from '@/utils/storage';
 import { decide, resolveBlockTarget, computePatterns } from '@/utils/rules';
 import { getHostname, normalizeHost } from '@/utils/domain';
@@ -81,6 +82,36 @@ function makeWhitelistRule(p: AddWhitelistPayload): WhitelistRule {
     status: 'allowed',
     createdAt: Date.now(),
   };
+}
+
+function dedupeBlock(profile: Profile, rule: BlockRule): { profile: Profile; rule: BlockRule } {
+  const idx = profile.blockList.findIndex((r) => r.text === rule.text && r.matchMode === rule.matchMode);
+  if (idx < 0) return { profile: { ...profile, blockList: [...profile.blockList, rule] }, rule };
+  const existing = profile.blockList[idx]!;
+  const updated: BlockRule = { ...existing, ...rule, id: existing.id, createdAt: existing.createdAt };
+  return {
+    profile: { ...profile, blockList: profile.blockList.map((r) => (r.id === existing.id ? updated : r)) },
+    rule: updated,
+  };
+}
+
+function dedupeWhitelist(profile: Profile, rule: WhitelistRule): { profile: Profile; rule: WhitelistRule } {
+  const idx = profile.whitelist.findIndex((r) => r.text === rule.text && r.matchMode === rule.matchMode);
+  if (idx < 0) return { profile: { ...profile, whitelist: [...profile.whitelist, rule] }, rule };
+  const existing = profile.whitelist[idx]!;
+  const updated: WhitelistRule = { ...existing, ...rule, id: existing.id, createdAt: existing.createdAt };
+  return {
+    profile: { ...profile, whitelist: profile.whitelist.map((r) => (r.id === existing.id ? updated : r)) },
+    rule: updated,
+  };
+}
+
+async function notify(title: string, message: string) {
+  try {
+    await browser.notifications.create({ type: 'basic', iconUrl: 'icon/128.png', title, message });
+  } catch {
+    // 忽略
+  }
 }
 
 // ---------------------------------------------------------------- 判定流程
@@ -225,7 +256,7 @@ async function handleContextMenuClick(info: {
     await updateState((s) => {
       const profile = getActiveProfile(s);
       const rule = makeBlockRule(profile, { text: host, matchMode: 'domain', blockType: 'permanent' });
-      return updateActiveProfile(s, (p) => ({ ...p, blockList: [...p.blockList, rule] }));
+      return updateActiveProfile(s, (p) => dedupeBlock(p, rule).profile);
     });
     return;
   }
@@ -236,7 +267,7 @@ async function handleContextMenuClick(info: {
   await updateState((s) => {
     const profile = getActiveProfile(s);
     const rule = makeBlockRule(profile, { text: host, matchMode: 'domain', blockType: 'permanent' });
-    return updateActiveProfile(s, (p) => ({ ...p, blockList: [...p.blockList, rule] }));
+    return updateActiveProfile(s, (p) => dedupeBlock(p, rule).profile);
   });
   if (info.tabId != null) {
     try {
@@ -266,9 +297,119 @@ browser.alarms.onAlarm.addListener(async (alarm) => {
   if (adv.changed) {
     await updateState((s) => ({ ...s, pomodoro: adv.state }));
     await ensurePomodoroAlarm({ ...state, pomodoro: adv.state });
+    if (adv.state.status === 'break') {
+      await notify('🍅 专注结束', '休息一下吧');
+    } else if (adv.state.status === 'focus') {
+      await notify('🍅 休息结束', '开始新的专注');
+    } else if (adv.state.status === 'idle') {
+      await notify('🎉 番茄钟完成', `今日完成 ${adv.state.sessionsCompleted} 个专注`);
+    }
   }
   await updateBadge();
 });
+
+// ---------------------------------------------------------------- omnibox / commands
+
+function setLockEnabledState(state: AppState, enabled: boolean): { state: AppState; error?: string } {
+  const now = Date.now();
+  if (enabled) {
+    if (state.cooldownMinutes > 0 && state.cooldownUntil != null && state.cooldownUntil > now) {
+      return { state, error: '冷却中' };
+    }
+    return { state: { ...state, lockEnabled: true, cooldownUntil: null } };
+  }
+  return {
+    state: {
+      ...state,
+      lockEnabled: false,
+      cooldownUntil: state.cooldownMinutes > 0 ? now + state.cooldownMinutes * 60_000 : null,
+    },
+  };
+}
+
+async function addBlockForHost(host: string) {
+  await updateState((s) => {
+    const profile = getActiveProfile(s);
+    const rule = makeBlockRule(profile, { text: host, matchMode: 'domain', blockType: 'permanent' });
+    return updateActiveProfile(s, (p) => dedupeBlock(p, rule).profile);
+  });
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  if (tab?.url && tab.id != null) {
+    try {
+      await processUrl(tab.url, tab.id);
+    } catch {
+      // 忽略
+    }
+  }
+}
+
+async function handleOmnibox(text: string) {
+  const input = text.trim();
+  if (!input) return;
+  const [cmd, ...rest] = input.split(/\s+/);
+  const arg = rest.join(' ');
+  switch (cmd) {
+    case 'add':
+    case 'block':
+    case 'b': {
+      if (arg) await addBlockForHost(normalizeHost(arg));
+      else await browser.runtime.openOptionsPage();
+      break;
+    }
+    case 'allow':
+    case 'white':
+    case 'w': {
+      if (arg) {
+        const host = normalizeHost(arg);
+        await updateState((s) => {
+          const profile = getActiveProfile(s);
+          const made = makeWhitelistRule({ text: host, matchMode: 'domain', type: 'permanent' });
+          return updateActiveProfile(s, (p) => dedupeWhitelist(p, made).profile);
+        });
+      } else {
+        await browser.runtime.openOptionsPage();
+      }
+      break;
+    }
+    case 'on': {
+      const state = await updateState((s) => setLockEnabledState(s, true).state);
+      await updateBadge(state);
+      break;
+    }
+    case 'off': {
+      const state = await updateState((s) => setLockEnabledState(s, false).state);
+      await updateBadge(state);
+      break;
+    }
+    case 'list':
+    case 'help': {
+      await browser.runtime.openOptionsPage();
+      break;
+    }
+    default: {
+      // 默认把输入当作域名加入拦截
+      if (input.includes('.')) await addBlockForHost(normalizeHost(input));
+      else await browser.runtime.openOptionsPage();
+    }
+  }
+}
+
+async function handleCommand(command: string) {
+  if (command === 'toggle-lock') {
+    const state = await loadState();
+    const next = setLockEnabledState(state, !state.lockEnabled);
+    if (!next.error) {
+      await saveState(next.state);
+      await updateBadge(next.state);
+    }
+  } else if (command === 'block-tab') {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    const host = tab?.url ? getHostname(tab.url) : null;
+    if (host && tab?.id != null) {
+      await addBlockForHost(host);
+    }
+  }
+}
 
 // ---------------------------------------------------------------- 消息处理
 
@@ -286,12 +427,15 @@ async function handleMessage(message: Message) {
     }
     case 'add-block': {
       const { tabId, url, ...payload } = message.payload;
+      let rule: BlockRule | undefined;
       const state = await updateState((s) => {
         const profile = getActiveProfile(s);
-        const rule = makeBlockRule(profile, payload);
-        return updateActiveProfile(s, (p) => ({ ...p, blockList: [...p.blockList, rule] }));
+        const made = makeBlockRule(profile, payload);
+        const { profile: next, rule: r } = dedupeBlock(profile, made);
+        rule = r;
+        return updateActiveProfile(s, () => next);
       });
-      const rule = getActiveProfile(state).blockList.find((r) => r.text === payload.text.trim())!;
+      rule = rule ?? getActiveProfile(state).blockList.find((r) => r.text === payload.text.trim())!;
       if (tabId != null && url) {
         try {
           await processUrl(url, tabId);
@@ -328,11 +472,11 @@ async function handleMessage(message: Message) {
       return { ok: true } as const;
     }
     case 'add-whitelist': {
-      const state = await updateState((s) => {
-        const rule = makeWhitelistRule(message.payload);
-        return updateActiveProfile(s, (p) => ({ ...p, whitelist: [...p.whitelist, rule] }));
+      await updateState((s) => {
+        const profile = getActiveProfile(s);
+        const made = makeWhitelistRule(message.payload);
+        return updateActiveProfile(s, (p) => dedupeWhitelist(p, made).profile);
       });
-      const rule = getActiveProfile(state).whitelist.find((r) => r.text === message.payload.text.trim())!;
       return { ok: true } as const;
     }
     case 'remove-whitelist': {
@@ -395,20 +539,13 @@ async function handleMessage(message: Message) {
       return { ok: true } as const;
     }
     case 'set-lock-enabled': {
-      const now = Date.now();
-      if (message.payload.enabled) {
-        const state = await loadState();
-        if (state.cooldownMinutes > 0 && state.cooldownUntil != null && state.cooldownUntil > now) {
-          return { ok: false, error: '冷却中', remainingMs: state.cooldownUntil - now } as const;
-        }
-        await updateState((s) => ({ ...s, lockEnabled: true, cooldownUntil: null }));
-      } else {
-        await updateState((s) => ({
-          ...s,
-          lockEnabled: false,
-          cooldownUntil: s.cooldownMinutes > 0 ? now + s.cooldownMinutes * 60_000 : null,
-        }));
+      const state = await loadState();
+      const next = setLockEnabledState(state, message.payload.enabled);
+      if (next.error) {
+        return { ok: false, error: next.error, remainingMs: (state.cooldownUntil ?? 0) - Date.now() } as const;
       }
+      await saveState(next.state);
+      await updateBadge(next.state);
       return { ok: true } as const;
     }
     case 'set-history-enabled': {
@@ -646,6 +783,7 @@ export default defineBackground(() => {
     try {
       let state = await loadState();
       state = resetAttemptCountersIfNewDay(pruneState(state));
+      state = resetPomodoroDayIfNewDay(state);
       const adv = pomodoroAdvance(state.pomodoro);
       const next = adv.changed ? { ...state, pomodoro: adv.state } : state;
       await saveState(next);
@@ -656,8 +794,12 @@ export default defineBackground(() => {
     }
   }, 30_000);
 
+  browser.omnibox.onInputEntered.addListener(handleOmnibox);
+  browser.commands.onCommand.addListener(handleCommand);
+
   (async () => {
-    const state = await loadState();
+    const state = await resetPomodoroDayIfNewDay(await loadState());
+    await saveState(state);
     await ensurePomodoroAlarm(state);
     await updateBadge(state);
   })().catch(console.error);

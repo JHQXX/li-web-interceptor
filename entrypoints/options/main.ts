@@ -3,12 +3,18 @@ import { send } from '@/utils/messaging';
 import { getActiveProfile } from '@/utils/storage';
 import { minToClock, parseClockToMin, formatRemaining, pomodoroRemainingSec } from '@/utils/time';
 import { SECURITY_QUESTIONS } from '@/utils/types';
+import { computeTodayStats } from '@/utils/stats';
+import { SITE_TEMPLATES } from '@/utils/templates';
 import type { AppState, BlockRule, BlockType, MatchMode, TimeWindow, WhitelistType } from '@/utils/types';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
 let pomoTimer: ReturnType<typeof setInterval> | undefined;
+let blockQuery = '';
+let wlQuery = '';
+let historyQuery = '';
+let historyFilter = 'all';
 
 const MODE_LABEL: Record<string, string> = { domain: '域名+衍生', contain: '包含', exact: '精确域名', pattern: '通配*', full: '全URL' };
 const BTYPE_LABEL: Record<string, string> = { permanent: '永久', timewise: '计时', attemptwise: '按次', schedule: '排程' };
@@ -59,6 +65,7 @@ function refresh() {
   renderWhitelist();
   renderKeywords();
   renderHistory();
+  renderStats();
   renderProfiles();
   renderPomodoro();
 }
@@ -68,11 +75,15 @@ function renderBlockList() {
   const tbody = $('block-tbody');
   tbody.innerHTML = '';
   const profile = getActiveProfile(state);
-  if (profile.blockList.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">还没有拦截任何网站</td></tr>';
+  const q = blockQuery.toLowerCase();
+  const list = profile.blockList.filter((r) =>
+    !q || r.text.toLowerCase().includes(q) || (r.patterns ?? []).some((x) => x.toLowerCase().includes(q)) || (MODE_LABEL[r.matchMode] ?? '').toLowerCase().includes(q) || (BTYPE_LABEL[r.blockType] ?? '').toLowerCase().includes(q),
+  );
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">${profile.blockList.length === 0 ? '还没有拦截任何网站' : '没有匹配的规则'}</td></tr>`;
     return;
   }
-  for (const rule of profile.blockList) {
+  for (const rule of list) {
     const tr = document.createElement('tr');
 
     const td1 = document.createElement('td');
@@ -156,11 +167,13 @@ function renderWhitelist() {
   const tbody = $('wl-tbody');
   tbody.innerHTML = '';
   const profile = getActiveProfile(state);
-  if (profile.whitelist.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">白名单为空</td></tr>';
+  const q = wlQuery.toLowerCase();
+  const list = profile.whitelist.filter((r) => !q || r.text.toLowerCase().includes(q) || (r.patterns ?? []).some((x) => x.toLowerCase().includes(q)));
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">${profile.whitelist.length === 0 ? '白名单为空' : '没有匹配的条目'}</td></tr>`;
     return;
   }
-  for (const rule of profile.whitelist) {
+  for (const rule of list) {
     const tr = document.createElement('tr');
     const td1 = document.createElement('td');
     const host = document.createElement('div');
@@ -250,12 +263,18 @@ function renderKeywords() {
 function renderHistory() {
   const tbody = $('history-tbody');
   tbody.innerHTML = '';
-  if (state.history.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无拦截记录</td></tr>';
+  const q = historyQuery.toLowerCase();
+  const list = state.history.filter((h) => {
+    if (historyFilter !== 'all' && h.action !== historyFilter) return false;
+    if (!q) return true;
+    return h.host.toLowerCase().includes(q) || h.url.toLowerCase().includes(q) || h.label.toLowerCase().includes(q);
+  });
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无匹配记录</td></tr>';
     return;
   }
   const ACTION: Record<string, string> = { blocked: '拦截', silent: '静默', keyword: '关键词', allowlist: '全站白名单' };
-  for (const h of state.history.slice(0, 100)) {
+  for (const h of list.slice(0, 200)) {
     const tr = document.createElement('tr');
     const td1 = document.createElement('td');
     td1.textContent = new Date(h.at).toLocaleString();
@@ -273,6 +292,31 @@ function renderHistory() {
     tr.appendChild(td3);
     tr.appendChild(td4);
     tbody.appendChild(tr);
+  }
+}
+
+// ---------- 统计 ----------
+function renderStats() {
+  const stats = computeTodayStats(state.history);
+  $('st-total').textContent = String(stats.totalBlocked);
+  $('st-blocked').textContent = String(stats.byAction.blocked ?? 0);
+  $('st-keyword').textContent = String(stats.byAction.keyword ?? 0);
+  $('st-silent').textContent = String(stats.byAction.silent ?? 0);
+  $('st-pomo').textContent = String(state.pomodoro.sessionsCompleted);
+  const ol = $('st-top');
+  ol.innerHTML = '';
+  if (stats.topSites.length === 0) {
+    ol.innerHTML = '<li class="empty">今日还没有拦截记录</li>';
+    return;
+  }
+  for (const t of stats.topSites) {
+    const li = document.createElement('li');
+    li.textContent = t.host;
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = `×${t.count}`;
+    li.appendChild(count);
+    ol.appendChild(li);
   }
 }
 
@@ -354,6 +398,37 @@ function renderPomodoro() {
   $('pomo-resume').classList.toggle('hidden', p.status !== 'paused');
   $('pomo-stop').classList.toggle('hidden', p.status === 'idle');
 }
+
+// ---------- 搜索 / 模板 ----------
+$<HTMLInputElement>('block-search').addEventListener('input', (e) => {
+  blockQuery = (e.target as HTMLInputElement).value;
+  renderBlockList();
+});
+$<HTMLInputElement>('wl-search').addEventListener('input', (e) => {
+  wlQuery = (e.target as HTMLInputElement).value;
+  renderWhitelist();
+});
+$<HTMLInputElement>('history-search').addEventListener('input', (e) => {
+  historyQuery = (e.target as HTMLInputElement).value;
+  renderHistory();
+});
+$<HTMLSelectElement>('history-filter').addEventListener('change', (e) => {
+  historyFilter = (e.target as HTMLSelectElement).value;
+  renderHistory();
+});
+document.querySelectorAll<HTMLButtonElement>('.tpl').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const tpl = SITE_TEMPLATES.find((t) => t.id === btn.dataset.tpl);
+    if (!tpl) return;
+    if (!confirm(`将以下网站加入拦截列表（域名+衍生/永久）？\n${tpl.hosts.join('\n')}`)) return;
+    for (const host of tpl.hosts) {
+      await send({ type: 'add-block', payload: { text: host, matchMode: 'domain', blockType: 'permanent' } });
+    }
+    state = await send({ type: 'get-state' }).then((r) => r.state);
+    refresh();
+    flashMsg(`已添加模板「${tpl.name}」`);
+  });
+});
 
 // ---------- 添加拦截 ----------
 $('btn-add-block').addEventListener('click', async () => {

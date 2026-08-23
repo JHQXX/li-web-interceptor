@@ -191,3 +191,35 @@ input:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 .data-msg.error { color: var(--danger); }
 .tag { font-size: 12px; background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius: 999px; padding: 2px 10px; vertical-align: middle; margin-left: 6px; }
 .inherit { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+
+/* ---------- 工具栏 / 搜索 / 模板 ---------- */
+.toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.toolbar .search { flex: 1; min-width: 160px; }
+.toolbar .filter { width: auto; }
+.templates { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tpl {
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tpl:hover { background: var(--accent-soft); }
+
+/* ---------- 统计 ---------- */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+  text-align: center;
+}
+.stat-num { font-size: 30px; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.top-list { list-style: decimal; padding-left: 22px; }
+.top-list li { padding: 6px 0; border-bottom: 1px solid var(--border-soft); font-size: 14px; }
+.top-list li:last-child { border-bottom: none; }
+.top-list .count { color: var(--accent); font-weight: 600; margin-left: 8px; }

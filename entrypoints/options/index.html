@@ -27,6 +27,7 @@
       <li data-tab="whitelist"><a href="javascript:void(0)">白名单</a></li>
       <li data-tab="keyword"><a href="javascript:void(0)">关键词</a></li>
       <li data-tab="history"><a href="javascript:void(0)">历史</a></li>
+      <li data-tab="stats"><a href="javascript:void(0)">统计</a></li>
       <li data-tab="profile"><a href="javascript:void(0)">档案</a></li>
       <li data-tab="pomodoro"><a href="javascript:void(0)">番茄钟</a></li>
       <li data-tab="settings"><a href="javascript:void(0)">设置</a></li>
@@ -70,6 +71,16 @@
             <label>重定向(可选) <input id="bl-redirect" type="text" placeholder="https://…" class="wide" /></label>
           </div>
         </div>
+        <div class="toolbar">
+          <input id="block-search" type="text" placeholder="搜索拦截列表…" class="search" />
+          <span class="templates">模板：
+            <button data-tpl="video" class="tpl">视频</button>
+            <button data-tpl="social" class="tpl">社交</button>
+            <button data-tpl="shop" class="tpl">购物</button>
+            <button data-tpl="news" class="tpl">资讯</button>
+            <button data-tpl="game" class="tpl">游戏</button>
+          </span>
+        </div>
         <div class="table-wrap">
           <table class="list-table">
             <thead><tr><th>网站</th><th>匹配</th><th>类型</th><th>状态</th><th></th></tr></thead>
@@ -110,6 +121,9 @@
             </span>
           </div>
         </div>
+        <div class="toolbar">
+          <input id="wl-search" type="text" placeholder="搜索白名单…" class="search" />
+        </div>
         <div class="table-wrap">
           <table class="list-table">
             <thead><tr><th>放行域名</th><th>匹配</th><th>类型</th><th>状态</th><th></th></tr></thead>
@@ -143,11 +157,36 @@
             <button id="btn-clear-history" class="btn btn-ghost">清空历史</button>
           </div>
         </div>
+        <div class="toolbar">
+          <input id="history-search" type="text" placeholder="搜索历史…" class="search" />
+          <select id="history-filter" class="filter">
+            <option value="all">全部方式</option>
+            <option value="blocked">拦截页</option>
+            <option value="silent">静默</option>
+            <option value="keyword">关键词</option>
+            <option value="allowlist">全站白名单</option>
+          </select>
+        </div>
         <div class="table-wrap">
           <table class="list-table">
             <thead><tr><th>时间</th><th>网站</th><th>命中</th><th>方式</th></tr></thead>
             <tbody id="history-tbody"></tbody>
           </table>
+        </div>
+      </section>
+
+      <!-- ============ 统计 ============ -->
+      <section id="tab-stats" class="tab-panel hidden">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-num" id="st-total">0</div><div class="stat-label">今日拦截</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-blocked">0</div><div class="stat-label">拦截页</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-keyword">0</div><div class="stat-label">关键词</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-silent">0</div><div class="stat-label">静默</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-pomo">0</div><div class="stat-label">今日番茄</div></div>
+        </div>
+        <div class="card">
+          <h2>今日被拦截 Top 网站</h2>
+          <ol id="st-top" class="top-list"></ol>
         </div>
       </section>
 

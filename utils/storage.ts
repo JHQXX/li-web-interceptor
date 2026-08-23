@@ -50,6 +50,7 @@ export function defaultState(): AppState {
     security: { question: '' },
     sync: { provider: 'none', enabled: false, lastSyncAt: null, lastError: null },
     pomodoro: pomodoroInitial(),
+    pomodoroDay: dateKey(),
     history: [],
     sessionUnlocks: [],
     activeCountdowns: [],
@@ -253,6 +254,7 @@ function migrate(raw: unknown): AppState {
     cooldownMinutes: typeof r.cooldownMinutes === 'number' ? r.cooldownMinutes : 0,
     cooldownUntil: typeof r.cooldownUntil === 'number' ? r.cooldownUntil : null,
     attemptResetDay: typeof r.attemptResetDay === 'string' ? r.attemptResetDay : dateKey(),
+    pomodoroDay: typeof r.pomodoroDay === 'string' ? r.pomodoroDay : dateKey(),
   };
 }
 
@@ -290,4 +292,15 @@ export function rulePatterns(text: string, opts?: BlockRule['domainOptions']): s
 /** 仅供测试：直接执行迁移 */
 export function _migrateForTest(raw: unknown): AppState {
   return migrate(raw);
+}
+
+/** 若跨天则重置番茄会话计数 */
+export function resetPomodoroDayIfNewDay(state: AppState, now: number = Date.now()): AppState {
+  const key = dateKey(now);
+  if (state.pomodoroDay === key) return state;
+  return {
+    ...state,
+    pomodoroDay: key,
+    pomodoro: { ...state.pomodoro, sessionsCompleted: 0 },
+  };
 }
