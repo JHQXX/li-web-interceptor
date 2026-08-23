@@ -6,15 +6,15 @@
     <title>网站被拦截</title>
   </head>
   <body>
-    <main class="blocked-card">
+    <main class="block-card">
       <div class="icon">🚫</div>
       <h1 id="title"></h1>
       <p id="message"></p>
       <div id="site" class="site"></div>
       <div id="countdown" class="countdown hidden"></div>
       <div id="actions" class="actions">
-        <button id="btn-continue" class="btn primary hidden">继续访问</button>
-        <button id="btn-unlock" class="btn secondary">需要提前访问</button>
+        <button id="btn-continue" class="btn btn-primary hidden">继续访问</button>
+        <button id="btn-unlock" class="btn btn-ghost">需要提前访问</button>
       </div>
       <footer>
         <a id="link-options" href="#">打开设置</a>
@@ -28,8 +28,8 @@
         <input id="pwd-input" type="password" placeholder="输入随机密码" autocomplete="off" />
         <p id="pwd-error" class="error hidden">密码错误，请重试</p>
         <div class="modal-actions">
-          <button id="btn-pwd-cancel" class="btn ghost">取消</button>
-          <button id="btn-pwd-ok" class="btn primary">确认</button>
+          <button id="btn-pwd-cancel" class="btn btn-ghost">取消</button>
+          <button id="btn-pwd-ok" class="btn btn-primary">确认</button>
         </div>
         <div id="unlock-options" class="unlock-options hidden">
           <div class="session-row">
@@ -40,9 +40,9 @@
               <option value="15">15 分钟</option>
               <option value="30">30 分钟</option>
             </select>
-            <button id="btn-session" class="btn">临时访问</button>
+            <button id="btn-session" class="btn btn-primary">临时访问</button>
           </div>
-          <button id="btn-remove" class="btn danger">从拦截列表移除</button>
+          <button id="btn-remove" class="btn btn-danger">从拦截列表移除</button>
         </div>
       </div>
     </div>

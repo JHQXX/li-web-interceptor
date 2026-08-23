@@ -1,110 +1,122 @@
 import './style.css';
 import { send } from '@/utils/messaging';
 import { parseClockToMin, minToClock } from '@/utils/time';
-import type { AppState, BlockRule, WhitelistRule, Schedule } from '@/utils/types';
+import type { AppState } from '@/utils/types';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
 
+// ---------- Tab 切换 ----------
+document.querySelectorAll<HTMLLIElement>('.tabs-nav li').forEach((li) => {
+  li.addEventListener('click', () => {
+    document.querySelectorAll('.tabs-nav li').forEach((x) => x.classList.remove('tab-active'));
+    li.classList.add('tab-active');
+    const tab = li.dataset.tab!;
+    document.querySelectorAll('.tab-panel').forEach((p) => {
+      (p as HTMLElement).classList.toggle('hidden', p.id !== `tab-${tab}`);
+    });
+  });
+});
+
+// ---------- 拦截列表 ----------
 function renderBlockList() {
-  const ul = $('block-list');
-  ul.innerHTML = '';
+  const tbody = $('block-tbody');
+  tbody.innerHTML = '';
   if (state.blockList.length === 0) {
-    const li = document.createElement('li');
-    li.className = 'empty';
-    li.textContent = '还没有拦截任何网站';
-    ul.appendChild(li);
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">还没有拦截任何网站</td></tr>';
     return;
   }
   for (const rule of state.blockList) {
-    const li = document.createElement('li');
+    const tr = document.createElement('tr');
 
-    const head = document.createElement('div');
-    head.className = 'row-head';
-    const host = document.createElement('span');
+    const tdHost = document.createElement('td');
+    const host = document.createElement('div');
     host.className = 'hostname';
     host.textContent = rule.hostname;
-    const rm = document.createElement('button');
-    rm.className = 'rm';
-    rm.textContent = '✕';
-    rm.addEventListener('click', async () => {
-      await send({ type: 'remove-block', payload: { id: rule.id } });
-      state = await send({ type: 'get-state' }).then((r) => r.state);
-      renderBlockList();
-    });
-    head.appendChild(host);
-    head.appendChild(rm);
-
     const patterns = document.createElement('div');
     patterns.className = 'patterns';
-    patterns.textContent = `匹配：${rule.patterns.join(', ')}`;
+    patterns.textContent = rule.patterns.join(', ');
+    tdHost.appendChild(host);
+    tdHost.appendChild(patterns);
 
+    const tdCount = document.createElement('td');
+    const count = document.createElement('input');
+    count.type = 'number';
+    count.min = '0';
+    count.className = 'mini-input';
+    count.value = rule.options.countdownMs != null ? String(Math.round(rule.options.countdownMs / 60000)) : '0';
+    count.title = '默认倒计时(分钟)，0 表示不自动倒计时';
+    count.addEventListener('change', async () => {
+      const minutes = Math.max(0, Number(count.value) || 0);
+      await send({ type: 'update-block', payload: { id: rule.id, changes: { countdownMs: minutes > 0 ? minutes * 60000 : null } } });
+      state = await send({ type: 'get-state' }).then((r) => r.state);
+    });
+    tdCount.appendChild(count);
+
+    const tdOpts = document.createElement('td');
     const opts = document.createElement('div');
-    opts.className = 'opts';
-
+    opts.className = 'cell-opts';
     const subLabel = document.createElement('label');
-    subLabel.innerHTML = '<input type="checkbox" /> 含子域名';
+    subLabel.innerHTML = '<input type="checkbox" class="mini-check" /> 子域';
     const subInput = subLabel.querySelector('input')!;
     subInput.checked = rule.options.includeSubdomains;
     subInput.addEventListener('change', async () => {
       await send({ type: 'update-block', payload: { id: rule.id, changes: { includeSubdomains: subInput.checked } } });
       state = await send({ type: 'get-state' }).then((r) => r.state);
     });
-
     const varLabel = document.createElement('label');
-    varLabel.innerHTML = '<input type="checkbox" /> 含变体/镜像';
+    varLabel.innerHTML = '<input type="checkbox" class="mini-check" /> 变体/镜像';
     const varInput = varLabel.querySelector('input')!;
     varInput.checked = rule.options.includeVariants;
     varInput.addEventListener('change', async () => {
       await send({ type: 'update-block', payload: { id: rule.id, changes: { includeVariants: varInput.checked } } });
       state = await send({ type: 'get-state' }).then((r) => r.state);
     });
-
-    const cdLabel = document.createElement('label');
-    cdLabel.textContent = '默认倒计时(分) ';
-    const cdInput = document.createElement('input');
-    cdInput.type = 'number';
-    cdInput.min = '0';
-    cdInput.value = rule.options.countdownMs != null ? String(Math.round(rule.options.countdownMs / 60000)) : '0';
-    cdInput.addEventListener('change', async () => {
-      const minutes = Math.max(0, Number(cdInput.value) || 0);
-      await send({
-        type: 'update-block',
-        payload: { id: rule.id, changes: { countdownMs: minutes > 0 ? minutes * 60000 : null } },
-      });
-      state = await send({ type: 'get-state' }).then((r) => r.state);
-    });
-    cdLabel.appendChild(cdInput);
-
     opts.appendChild(subLabel);
     opts.appendChild(varLabel);
-    opts.appendChild(cdLabel);
+    tdOpts.appendChild(opts);
 
-    li.appendChild(head);
-    li.appendChild(patterns);
-    li.appendChild(opts);
-    ul.appendChild(li);
+    const tdRm = document.createElement('td');
+    const rm = document.createElement('button');
+    rm.className = 'rm';
+    rm.textContent = '✕';
+    rm.title = '移除';
+    rm.addEventListener('click', async () => {
+      await send({ type: 'remove-block', payload: { id: rule.id } });
+      state = await send({ type: 'get-state' }).then((r) => r.state);
+      renderBlockList();
+    });
+    tdRm.appendChild(rm);
+
+    tr.appendChild(tdHost);
+    tr.appendChild(tdCount);
+    tr.appendChild(tdOpts);
+    tr.appendChild(tdRm);
+    tbody.appendChild(tr);
   }
 }
 
+// ---------- 白名单 ----------
 function renderWhitelist() {
-  const ul = $('wl-list');
-  ul.innerHTML = '';
+  const tbody = $('wl-tbody');
+  tbody.innerHTML = '';
   if (state.whitelist.length === 0) {
-    const li = document.createElement('li');
-    li.className = 'empty';
-    li.textContent = '白名单为空';
-    ul.appendChild(li);
+    tbody.innerHTML = '<tr><td colspan="3" class="empty">白名单为空</td></tr>';
     return;
   }
   for (const rule of state.whitelist) {
-    const li = document.createElement('li');
-    const head = document.createElement('div');
-    head.className = 'row-head';
-    const host = document.createElement('span');
+    const tr = document.createElement('tr');
+    const tdHost = document.createElement('td');
+    const host = document.createElement('div');
     host.className = 'hostname';
     host.textContent = rule.hostname;
+    const patterns = document.createElement('div');
+    patterns.className = 'patterns';
+    patterns.textContent = rule.patterns.join(', ');
+    tdHost.appendChild(host);
+    tdHost.appendChild(patterns);
+    const tdRm = document.createElement('td');
     const rm = document.createElement('button');
     rm.className = 'rm';
     rm.textContent = '✕';
@@ -113,17 +125,14 @@ function renderWhitelist() {
       state = await send({ type: 'get-state' }).then((r) => r.state);
       renderWhitelist();
     });
-    head.appendChild(host);
-    head.appendChild(rm);
-    const patterns = document.createElement('div');
-    patterns.className = 'patterns';
-    patterns.textContent = `匹配：${rule.patterns.join(', ')}`;
-    li.appendChild(head);
-    li.appendChild(patterns);
-    ul.appendChild(li);
+    tdRm.appendChild(rm);
+    tr.appendChild(tdHost);
+    tr.appendChild(tdRm);
+    tbody.appendChild(tr);
   }
 }
 
+// ---------- 允许时段 ----------
 function renderSchedules() {
   const ul = $('sch-list');
   ul.innerHTML = '';
@@ -137,23 +146,14 @@ function renderSchedules() {
   const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
   for (const s of state.schedules) {
     const li = document.createElement('li');
-    const head = document.createElement('div');
-    head.className = 'row-head';
+    const left = document.createElement('div');
     const host = document.createElement('span');
     host.className = 'hostname';
     const days = s.days.length === 0 ? '每天' : s.days.map((d) => `周${DAY_NAMES[d]}`).join(' ');
     host.textContent = `${days} ${minToClock(s.startMin)} - ${minToClock(s.endMin)}`;
-    const rm = document.createElement('button');
-    rm.className = 'rm';
-    rm.textContent = '✕';
-    rm.addEventListener('click', async () => {
-      await send({ type: 'remove-schedule', payload: { id: s.id } });
-      state = await send({ type: 'get-state' }).then((r) => r.state);
-      renderSchedules();
-    });
-    head.appendChild(host);
-    head.appendChild(rm);
-
+    left.appendChild(host);
+    const right = document.createElement('div');
+    right.style.cssText = 'display:flex;align-items:center;gap:12px;';
     const toggleLabel = document.createElement('label');
     toggleLabel.className = 'switch-row';
     toggleLabel.textContent = '启用';
@@ -167,9 +167,18 @@ function renderSchedules() {
       state = await send({ type: 'get-state' }).then((r) => r.state);
     });
     toggleLabel.appendChild(sw);
-
-    li.appendChild(head);
-    li.appendChild(toggleLabel);
+    const rm = document.createElement('button');
+    rm.className = 'rm';
+    rm.textContent = '✕';
+    rm.addEventListener('click', async () => {
+      await send({ type: 'remove-schedule', payload: { id: s.id } });
+      state = await send({ type: 'get-state' }).then((r) => r.state);
+      renderSchedules();
+    });
+    right.appendChild(toggleLabel);
+    right.appendChild(rm);
+    li.appendChild(left);
+    li.appendChild(right);
     ul.appendChild(li);
   }
 }
@@ -191,7 +200,7 @@ function refresh() {
 
 // --- 拦截列表 ---
 $('btn-add-block').addEventListener('click', async () => {
-  const input = $('block-input') as HTMLInputElement;
+  const input = $<HTMLInputElement>('block-input');
   const host = input.value.trim();
   if (!host) return;
   await send({ type: 'add-block', payload: { host } });
@@ -199,13 +208,13 @@ $('btn-add-block').addEventListener('click', async () => {
   state = await send({ type: 'get-state' }).then((r) => r.state);
   refresh();
 });
-($('block-input') as HTMLInputElement).addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') ($('btn-add-block') as HTMLButtonElement).click();
+$<HTMLInputElement>('block-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') $<HTMLButtonElement>('btn-add-block').click();
 });
 
 // --- 白名单 ---
 $('btn-add-wl').addEventListener('click', async () => {
-  const input = $('wl-input') as HTMLInputElement;
+  const input = $<HTMLInputElement>('wl-input');
   const host = input.value.trim();
   if (!host) return;
   await send({ type: 'add-whitelist', payload: { host } });
@@ -217,8 +226,8 @@ $('btn-add-wl').addEventListener('click', async () => {
 // --- 时段 ---
 $('btn-add-sch').addEventListener('click', async () => {
   const days = [...document.querySelectorAll<HTMLInputElement>('.days input:checked')].map((i) => Number(i.value));
-  const startMin = parseClockToMin(($('sch-start') as HTMLInputElement).value || '09:00');
-  const endMin = parseClockToMin(($('sch-end') as HTMLInputElement).value || '18:00');
+  const startMin = parseClockToMin($<HTMLInputElement>('sch-start').value || '09:00');
+  const endMin = parseClockToMin($<HTMLInputElement>('sch-end').value || '18:00');
   await send({ type: 'add-schedule', payload: { days, startMin, endMin } });
   state = await send({ type: 'get-state' }).then((r) => r.state);
   refresh();
@@ -234,7 +243,7 @@ $('lock-toggle').addEventListener('change', async (e) => {
 $('pwd-toggle').addEventListener('change', async (e) => {
   await send({ type: 'set-password-enabled', payload: { enabled: (e.target as HTMLInputElement).checked } });
   if ((e.target as HTMLInputElement).checked && !state.settings.password.hash) {
-    ($('btn-gen-pwd') as HTMLButtonElement).click();
+    $<HTMLButtonElement>('btn-gen-pwd').click();
   }
   state = await send({ type: 'get-state' }).then((r) => r.state);
   refresh();
@@ -251,7 +260,7 @@ $('btn-gen-pwd').addEventListener('click', async () => {
 $('btn-copy-pwd').addEventListener('click', async () => {
   const text = $('pwd-value').textContent ?? '';
   await navigator.clipboard.writeText(text);
-  const btn = $('btn-copy-pwd') as HTMLButtonElement;
+  const btn = $<HTMLButtonElement>('btn-copy-pwd');
   const old = btn.textContent;
   btn.textContent = '已复制';
   setTimeout(() => (btn.textContent = old), 1500);
@@ -262,10 +271,10 @@ $('btn-save-bp').addEventListener('click', async () => {
   await send({
     type: 'set-block-page',
     payload: {
-      title: ($('bp-title') as HTMLInputElement).value,
-      message: ($('bp-message') as HTMLInputElement).value,
-      showCountdown: ($('bp-countdown-toggle') as HTMLInputElement).checked,
-      defaultCountdownMs: Math.max(1, Number(($('bp-countdown-min') as HTMLInputElement).value) || 1) * 60000,
+      title: $<HTMLInputElement>('bp-title').value,
+      message: $<HTMLInputElement>('bp-message').value,
+      showCountdown: $<HTMLInputElement>('bp-countdown-toggle').checked,
+      defaultCountdownMs: Math.max(1, Number($<HTMLInputElement>('bp-countdown-min').value) || 1) * 60000,
     },
   });
   state = await send({ type: 'get-state' }).then((r) => r.state);
@@ -278,9 +287,9 @@ $('btn-save-variants').addEventListener('click', async () => {
     type: 'set-variants',
     payload: {
       variants: {
-        includeSubdomains: ($('v-sub') as HTMLInputElement).checked,
-        includeTldVariants: ($('v-tld') as HTMLInputElement).checked,
-        includeKnownMirrors: ($('v-mirror') as HTMLInputElement).checked,
+        includeSubdomains: $<HTMLInputElement>('v-sub').checked,
+        includeTldVariants: $<HTMLInputElement>('v-tld').checked,
+        includeKnownMirrors: $<HTMLInputElement>('v-mirror').checked,
       },
     },
   });
@@ -303,9 +312,9 @@ $('btn-export').addEventListener('click', async () => {
 });
 
 $('btn-import').addEventListener('click', () => {
-  ($('import-file') as HTMLInputElement).click();
+  $<HTMLInputElement>('import-file').click();
 });
-($('import-file') as HTMLInputElement).addEventListener('change', async (e) => {
+$<HTMLInputElement>('import-file').addEventListener('change', async (e) => {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (!file) return;
   try {
@@ -330,7 +339,7 @@ $('btn-reset').addEventListener('click', async () => {
 
 // --- 付费同步（禁用态） ---
 $('btn-sync-test').addEventListener('click', async () => {
-  const provider = ($('sync-provider') as HTMLSelectElement).value as 'webdav' | 's3';
+  const provider = $<HTMLSelectElement>('sync-provider').value as 'webdav' | 's3';
   const res = await send({ type: 'sync-test', payload: { provider } });
   flashMsg(res.error ?? '连接成功', !res.ok);
 });
