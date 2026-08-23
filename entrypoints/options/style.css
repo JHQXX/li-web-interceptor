@@ -367,3 +367,55 @@ input:focus, select:focus { border-color: var(--accent); }
 
 /* 开关 */
 .switch .slider { box-shadow: inset 0 1px 2px rgba(0,0,0,0.15); }
+
+/* ================= Tab 悬停修复 + 排版优化 ================= */
+.tabs-nav {
+  gap: 8px;
+  padding: 10px 26px;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border-soft);
+}
+.tabs-nav li {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 18px;
+  margin: 2px 0;
+  transition: background 0.15s, border-color 0.15s, transform 0.05s;
+}
+.tabs-nav li:hover { background: var(--accent-soft); border-color: var(--accent); transform: translateY(-1px); }
+.tabs-nav li.tab-active { background: var(--accent); border-color: var(--accent); }
+.tabs-nav li.tab-active:hover { background: var(--accent-hover); }
+.tabs-nav li.tab-active a { color: #fff; }
+.tabs-nav li:hover a { color: var(--accent); }
+.tabs-nav li.tab-active:hover a { color: #fff; }
+
+/* 页面背景：淡点阵增加手绘感 */
+body {
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 10%, transparent) 1.2px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+.main-tabs { padding-top: 30px; }
+
+/* 标题栏排版 */
+.main-heading { padding: 14px 28px; }
+.logo-icon { font-size: 32px; }
+
+/* 区块标题加小图标底色 */
+.card h2 { display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 2px dashed var(--border-soft); margin-bottom: 16px; }
+
+/* 添加区按钮与输入对齐 */
+.add-row { align-items: stretch; }
+.add-row .btn { padding: 0 26px; }
+.add-row2 { align-items: flex-end; }
+
+/* 卡片间距统一 */
+.card { margin-bottom: 20px; }
+.field { margin-bottom: 18px; }
+
+/* 表格行 hover 保留底色，仅轻微高亮 */
+.list-table tbody tr:hover { background: var(--row-hover); }
+
+/* 统计卡片 hover 上浮 */
+.stat-card { transition: transform 0.12s; }
+.stat-card:hover { transform: translateY(-2px); }

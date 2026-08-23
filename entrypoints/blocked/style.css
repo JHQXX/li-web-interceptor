@@ -185,3 +185,9 @@ h1 { color: var(--accent); }
 input[type='password'], input[type='text'], .session-select { border: 2px solid var(--border); border-radius: 999px; background: var(--input-bg); color: var(--text); }
 .countdown { color: var(--accent); }
 footer a { color: var(--text-faint); }
+
+/* ================= 排版优化 ================= */
+.block-card { max-width: 500px; }
+.btn { transition: transform 0.06s, background 0.15s, box-shadow 0.15s; }
+.btn:hover { opacity: 1; transform: translateY(-1px); }
+.btn:active { transform: translateY(3px); }
