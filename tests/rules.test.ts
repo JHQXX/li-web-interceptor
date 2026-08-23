@@ -251,3 +251,19 @@ describe('findBlockRule', () => {
     expect(findBlockRule('https://youtube.com', 'youtube.com', [off])).toBeUndefined();
   });
 });
+
+import { computePatterns } from '@/utils/rules';
+
+describe('默认只拦当前域名（衍生扩展全关）', () => {
+  it('全关时只生成精确域名模式', () => {
+    const p = computePatterns('youtube.com', { includeSubdomains: false, includeTldVariants: false, includeKnownMirrors: false });
+    expect(p).toEqual(['youtube.com']);
+    expect(p).not.toContain('*.youtube.com');
+    expect(p).not.toContain('youtu.be');
+  });
+  it('开启子域时加入通配', () => {
+    const p = computePatterns('youtube.com', { includeSubdomains: true, includeTldVariants: false, includeKnownMirrors: false });
+    expect(p).toContain('*.youtube.com');
+    expect(p).not.toContain('youtu.be');
+  });
+});

@@ -245,3 +245,6 @@ input:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 .list-table th, .list-table td { padding: 13px 16px; }
 .table-wrap { border-radius: 8px; }
 .toolbar { align-items: center; }
+
+.ext-checks { gap: 12px; }
+.ext-checks input { accent-color: var(--accent); }

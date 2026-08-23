@@ -22,9 +22,9 @@ export function defaultState(): AppState {
         keywords: [],
         settings: {
           variants: {
-            includeSubdomains: true,
-            includeTldVariants: true,
-            includeKnownMirrors: true,
+            includeSubdomains: false,
+            includeTldVariants: false,
+            includeKnownMirrors: false,
           },
           blockPage: {
             title: '该网站已被拦截',

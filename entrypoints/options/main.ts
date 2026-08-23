@@ -62,6 +62,10 @@ function refresh() {
   $<HTMLInputElement>('v-sub').checked = s.variants.includeSubdomains;
   $<HTMLInputElement>('v-tld').checked = s.variants.includeTldVariants;
   $<HTMLInputElement>('v-mirror').checked = s.variants.includeKnownMirrors;
+  // 添加表单的衍生扩展勾选框：默认跟随全局策略（默认全不勾，只拦当前域名）
+  $<HTMLInputElement>('bl-sub').checked = s.variants.includeSubdomains;
+  $<HTMLInputElement>('bl-tld').checked = s.variants.includeTldVariants;
+  $<HTMLInputElement>('bl-mirror').checked = s.variants.includeKnownMirrors;
   $<HTMLInputElement>('pwd-toggle').checked = state.password.enabled;
   renderBlockList();
   renderWhitelist();
@@ -449,6 +453,11 @@ $('btn-add-block').addEventListener('click', async () => {
       attempts: blockType === 'attemptwise' ? Math.max(1, Number($<HTMLInputElement>('bl-attempts').value) || 5) : undefined,
       schedule: blockType === 'schedule' ? readSchedule('bl-param-schedule') : undefined,
       redirectUrl: redirectUrl || undefined,
+      domainOptions: matchMode === 'domain' ? {
+        includeSubdomains: $<HTMLInputElement>('bl-sub').checked,
+        includeTldVariants: $<HTMLInputElement>('bl-tld').checked,
+        includeKnownMirrors: $<HTMLInputElement>('bl-mirror').checked,
+      } : undefined,
     },
   });
   $<HTMLInputElement>('bl-text').value = '';
@@ -459,11 +468,14 @@ $<HTMLInputElement>('bl-text').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') $<HTMLButtonElement>('btn-add-block').click();
 });
 $<HTMLSelectElement>('bl-type').addEventListener('change', syncBlockParams);
+$<HTMLSelectElement>('bl-mode').addEventListener('change', syncBlockParams);
 function syncBlockParams() {
   const t = $<HTMLSelectElement>('bl-type').value;
+  const mode = $<HTMLSelectElement>('bl-mode').value;
   $('bl-param-timewise').classList.toggle('hidden', t !== 'timewise');
   $('bl-param-attempt').classList.toggle('hidden', t !== 'attemptwise');
   $('bl-param-schedule').classList.toggle('hidden', t !== 'schedule');
+  $('bl-ext').classList.toggle('hidden', mode !== 'domain');
 }
 
 // ---------- 添加白名单 ----------

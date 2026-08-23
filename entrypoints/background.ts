@@ -53,7 +53,7 @@ function blockedPageUrl(originalUrl: string, host: string, ruleId?: string): str
 
 function makeBlockRule(profile: Profile, p: AddBlockPayload): BlockRule {
   const v = profile.settings.variants;
-  const domainOpts = { includeSubdomains: v.includeSubdomains, includeTldVariants: v.includeTldVariants, includeKnownMirrors: v.includeKnownMirrors };
+  const domainOpts = p.domainOptions ?? { includeSubdomains: v.includeSubdomains, includeTldVariants: v.includeTldVariants, includeKnownMirrors: v.includeKnownMirrors };
   return {
     id: uid('br_'),
     text: p.text.trim(),
@@ -496,9 +496,20 @@ async function handleMessage(message: Message) {
       await updateState((s) =>
         updateActiveProfile(s, (p) => ({
           ...p,
-          blockList: p.blockList.map((r) =>
-            r.id === message.payload.id ? { ...r, ...message.payload.changes } : r,
-          ),
+          blockList: p.blockList.map((r) => {
+            if (r.id !== message.payload.id) return r;
+            const changes = message.payload.changes;
+            const next = { ...r, ...changes };
+            // 子域 / 变体开关变更时，重算衍生匹配模式，使其真正生效
+            if (changes.includeSubdomains !== undefined || changes.includeVariants !== undefined) {
+              const cur = r.domainOptions ?? { includeSubdomains: false, includeTldVariants: false, includeKnownMirrors: false };
+              const sub = changes.includeSubdomains !== undefined ? Boolean(changes.includeSubdomains) : Boolean(cur.includeSubdomains);
+              const varFlag = changes.includeVariants !== undefined ? Boolean(changes.includeVariants) : Boolean(cur.includeTldVariants || cur.includeKnownMirrors);
+              const domainOptions = { includeSubdomains: sub, includeTldVariants: varFlag, includeKnownMirrors: varFlag };
+              return { ...next, domainOptions, patterns: computePatterns(r.text, domainOptions) };
+            }
+            return next;
+          }),
         })),
       );
       return { ok: true } as const;

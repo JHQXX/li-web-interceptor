@@ -820,5 +820,17 @@
   },
   "syncBucket": {
     "message": "Bucket"
+  },
+  "blSub": {
+    "message": "子域"
+  },
+  "blTld": {
+    "message": "TLD变体"
+  },
+  "blMirror": {
+    "message": "镜像站"
+  },
+  "blExt": {
+    "message": "衍生扩展："
   }
 }

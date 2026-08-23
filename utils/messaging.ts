@@ -4,6 +4,7 @@
 import { browser } from 'wxt/browser';
 import type {
   AppState,
+  DomainOptions,
   BlockRule,
   BlockType,
   MatchMode,
@@ -25,6 +26,8 @@ export interface AddBlockPayload {
   reason?: string;
   tabId?: number;
   url?: string;
+  /** domain 模式的衍生扩展开关（缺省时用全局默认策略） */
+  domainOptions?: DomainOptions;
 }
 
 export interface AddWhitelistPayload {
@@ -52,7 +55,7 @@ export type Message =
   | { type: 'get-tab-info' }
   | { type: 'add-block'; payload: AddBlockPayload }
   | { type: 'remove-block'; payload: { id: string } }
-  | { type: 'update-block'; payload: { id: string; changes: Partial<Omit<BlockRule, 'id' | 'text'>> } }
+  | { type: 'update-block'; payload: { id: string; changes: Partial<Omit<BlockRule, 'id' | 'text'>> & { includeSubdomains?: boolean; includeVariants?: boolean } } }
   | { type: 'set-rule-status'; payload: { id: string; status: 'blocked' | 'unblocked' } }
   | { type: 'add-whitelist'; payload: AddWhitelistPayload }
   | { type: 'remove-whitelist'; payload: { id: string } }

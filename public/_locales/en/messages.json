@@ -820,5 +820,17 @@
   },
   "syncBucket": {
     "message": "Bucket"
+  },
+  "blSub": {
+    "message": "Subdomains"
+  },
+  "blTld": {
+    "message": "TLD variants"
+  },
+  "blMirror": {
+    "message": "Mirrors"
+  },
+  "blExt": {
+    "message": "Derivatives: "
   }
 }
