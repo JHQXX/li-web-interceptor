@@ -98,3 +98,15 @@ footer a { color: var(--blue); text-decoration: none; font-size: 13px; }
 .slider::before { content: ''; position: absolute; height: 17px; width: 17px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgb(0 0 0 / 0.3); }
 .switch input:checked + .slider { background: var(--accent); }
 .switch input:checked + .slider::before { transform: translateX(19px); }
+
+/* ================= 对齐与美化覆盖 ================= */
+body { width: 340px; }
+.header { padding: 14px 18px; }
+.current { padding: 16px 18px; }
+.host { text-align: center; }
+.row { gap: 10px; }
+.btn { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; }
+.pomodoro { padding: 14px 18px; }
+.list-section { padding: 14px 18px; }
+.list li { padding: 9px 12px; }
+footer { padding: 12px 18px; }

@@ -121,3 +121,9 @@ input:focus { border-color: var(--accent); }
 
 #btn-forget { display: block; font-size: 12px; color: var(--blue); text-decoration: none; margin-bottom: 10px; }
 .new-pwd code { display: block; font-size: 20px; color: var(--accent); margin: 8px 0; word-break: break-all; user-select: all; }
+
+/* ================= 对齐与美化覆盖 ================= */
+.block-card { border-radius: 16px; padding: 48px 44px; box-shadow: 0 18px 48px rgba(0, 0, 0, 0.1); }
+.actions { max-width: 320px; margin: 0 auto; width: 100%; }
+.btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.modal-box { border-radius: 12px; }

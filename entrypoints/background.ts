@@ -9,6 +9,7 @@ import {
   pruneState,
   resetAttemptCountersIfNewDay,
   resetPomodoroDayIfNewDay,
+  clearHostGrants,
 } from '@/utils/storage';
 import { decide, resolveBlockTarget, computePatterns } from '@/utils/rules';
 import { getHostname, normalizeHost } from '@/utils/domain';
@@ -258,7 +259,8 @@ async function handleContextMenuClick(info: {
     await updateState((s) => {
       const profile = getActiveProfile(s);
       const rule = makeBlockRule(profile, { text: host, matchMode: 'domain', blockType: 'permanent' });
-      return updateActiveProfile(s, (p) => dedupeBlock(p, rule).profile);
+      const next = updateActiveProfile(s, (p) => dedupeBlock(p, rule).profile);
+      return clearHostGrants(next, host);
     });
     return;
   }
@@ -333,7 +335,8 @@ async function addBlockForHost(host: string) {
   await updateState((s) => {
     const profile = getActiveProfile(s);
     const rule = makeBlockRule(profile, { text: host, matchMode: 'domain', blockType: 'permanent' });
-    return updateActiveProfile(s, (p) => dedupeBlock(p, rule).profile);
+    const next = updateActiveProfile(s, (p) => dedupeBlock(p, rule).profile);
+    return clearHostGrants(next, host);
   });
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (tab?.url && tab.id != null) {
@@ -467,7 +470,8 @@ async function handleMessage(message: Message) {
         const made = makeBlockRule(profile, payload);
         const { profile: next, rule: r } = dedupeBlock(profile, made);
         rule = r;
-        return updateActiveProfile(s, () => next);
+        const withRule = updateActiveProfile(s, () => next);
+        return clearHostGrants(withRule, payload.text);
       });
       rule = rule ?? getActiveProfile(state).blockList.find((r) => r.text === payload.text.trim())!;
       if (tabId != null && url) {
@@ -480,9 +484,12 @@ async function handleMessage(message: Message) {
       return { ok: true, rule } as const;
     }
     case 'remove-block': {
-      await updateState((s) =>
-        updateActiveProfile(s, (p) => ({ ...p, blockList: p.blockList.filter((r) => r.id !== message.payload.id) })),
-      );
+      await updateState((s) => {
+        const profile = getActiveProfile(s);
+        const target = profile.blockList.find((r) => r.id === message.payload.id);
+        const next = updateActiveProfile(s, (p) => ({ ...p, blockList: p.blockList.filter((r) => r.id !== message.payload.id) }));
+        return target ? clearHostGrants(next, target.text) : next;
+      });
       return { ok: true } as const;
     }
     case 'update-block': {

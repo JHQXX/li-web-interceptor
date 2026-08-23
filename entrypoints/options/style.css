@@ -223,3 +223,25 @@ input:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 .top-list li { padding: 6px 0; border-bottom: 1px solid var(--border-soft); font-size: 14px; }
 .top-list li:last-child { border-bottom: none; }
 .top-list .count { color: var(--accent); font-weight: 600; margin-left: 8px; }
+
+/* ================= 对齐与美化覆盖 ================= */
+.tabs-nav, .main-tabs { max-width: 1080px; margin-left: auto; margin-right: auto; }
+.tabs-nav { padding: 0 28px; }
+.main-tabs { padding: 26px 28px 48px; }
+
+.add-row { align-items: center; }
+.add-row2 { align-items: flex-end; row-gap: 12px; column-gap: 18px; }
+.add-row2 > label, .add-row2 > .param { min-height: 34px; }
+
+.card { padding: 22px 24px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); }
+.card h2 { margin-bottom: 16px; }
+.field { margin-bottom: 16px; }
+.field label { margin-bottom: 8px; }
+
+.row { gap: 12px; }
+.btn { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.switch-row { min-height: 24px; }
+
+.list-table th, .list-table td { padding: 13px 16px; }
+.table-wrap { border-radius: 8px; }
+.toolbar { align-items: center; }

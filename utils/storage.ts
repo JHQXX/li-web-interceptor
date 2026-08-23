@@ -6,6 +6,7 @@ import type { AppState, BlockRule, HistoryEntry, Profile, WhitelistRule } from '
 import { HISTORY_LIMIT, STATE_VERSION } from './types';
 import { pomodoroInitial, dateKey } from './time';
 import { computePatterns } from './rules';
+import { normalizeHost } from './domain';
 
 const STATE_KEY = 'liwi:state:v2';
 
@@ -302,5 +303,15 @@ export function resetPomodoroDayIfNewDay(state: AppState, now: number = Date.now
     ...state,
     pomodoroDay: key,
     pomodoro: { ...state.pomodoro, sessionsCompleted: 0 },
+  };
+}
+
+/** 清除某域名的会话级临时放行与倒计时（重新添加/删除拦截时调用，避免旧放行覆盖新规则） */
+export function clearHostGrants(state: AppState, host: string): AppState {
+  const h = normalizeHost(host);
+  return {
+    ...state,
+    sessionUnlocks: state.sessionUnlocks.filter((x) => normalizeHost(x.hostname) !== h),
+    activeCountdowns: state.activeCountdowns.filter((c) => normalizeHost(c.hostname) !== h),
   };
 }

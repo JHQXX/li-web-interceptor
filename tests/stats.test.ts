@@ -72,3 +72,22 @@ describe('resetPomodoroDayIfNewDay', () => {
     expect(next.pomodoro.sessionsCompleted).toBe(5);
   });
 });
+
+import { clearHostGrants } from '@/utils/storage';
+
+describe('clearHostGrants', () => {
+  it('清除会话放行与倒计时（含 www 归一化）', () => {
+    const s = defaultState();
+    s.sessionUnlocks = [{ id: 'u', hostname: 'youtube.com', expiresAt: Date.now() + 60000 }];
+    s.activeCountdowns = [{ id: 'c', hostname: 'www.youtube.com', unlocksAt: Date.now() + 60000 }];
+    const next = clearHostGrants(s, 'www.youtube.com');
+    expect(next.sessionUnlocks).toHaveLength(0);
+    expect(next.activeCountdowns).toHaveLength(0);
+  });
+  it('不影响其他域名', () => {
+    const s = defaultState();
+    s.sessionUnlocks = [{ id: 'u', hostname: 'weibo.com', expiresAt: Date.now() + 60000 }];
+    const next = clearHostGrants(s, 'youtube.com');
+    expect(next.sessionUnlocks).toHaveLength(1);
+  });
+});
