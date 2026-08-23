@@ -4,6 +4,7 @@ import { send } from '@/utils/messaging';
 import { decide, findBlockRule } from '@/utils/rules';
 import { getActiveProfile } from '@/utils/storage';
 import { formatRemaining } from '@/utils/time';
+import { t } from '@/utils/i18n';
 import type { AppState, BlockRule } from '@/utils/types';
 
 const params = new URLSearchParams(location.search);
@@ -41,7 +42,7 @@ function render() {
   const decision = decisionNow();
   $('title').textContent = profile.settings.blockPage.title;
   $('message').textContent = profile.settings.blockPage.message;
-  $('site').textContent = site || '未知网站';
+  $('site').textContent = site || t('unknown');
   currentRule = decision.status === 'blocked' ? decision.rule : undefined;
 
   const countdown = $('countdown');
@@ -55,14 +56,14 @@ function render() {
     btnUnlock.classList.remove('hidden');
     if (decision.countdownRemainingMs != null && profile.settings.blockPage.showCountdown) {
       countdown.classList.remove('hidden');
-      countdown.textContent = `距可访问还有 ${formatRemaining(decision.countdownRemainingMs)}`;
+      countdown.textContent = t('blockedCountdown', [formatRemaining(decision.countdownRemainingMs)]);
     } else {
       countdown.classList.add('hidden');
     }
   } else {
     countdown.classList.add('hidden');
     btnContinue.classList.remove('hidden');
-    btnContinue.textContent = '现在可以访问，继续';
+    btnContinue.textContent = t('blockedNowAccessible');
     btnTimer.classList.add('hidden');
     btnUnlock.classList.add('hidden');
   }
@@ -72,7 +73,7 @@ function render() {
   const sec = profile.settings.blockPage.autoCloseSeconds;
   if (sec > 0 && decision.status === 'blocked') {
     autoClose.classList.remove('hidden');
-    autoClose.textContent = `本页将在 ${sec} 秒后自动关闭`;
+    autoClose.textContent = t('blockedAutoClose', [sec]);
   } else {
     autoClose.classList.add('hidden');
   }
@@ -95,12 +96,12 @@ function openModal() {
   $('sec-wrap').classList.add('hidden');
   $('btn-forget').classList.toggle('hidden', !pwdEnabled);
   if (!pwdEnabled) {
-    $('pwd-hint').textContent = '未启用随机密码保护，可直接操作：';
+    $('pwd-hint').textContent = t('blockedNoPwd');
     input.classList.add('hidden');
     $('btn-pwd-ok').classList.add('hidden');
     $('unlock-options').classList.remove('hidden');
   } else {
-    $('pwd-hint').textContent = '输入随机密码（仅首次设置时展示一次）：';
+    $('pwd-hint').textContent = t('blockedPwdHint');
     input.classList.remove('hidden');
     $('btn-pwd-ok').classList.remove('hidden');
     input.focus();
@@ -117,7 +118,7 @@ async function submitPassword() {
   const { valid } = await send({ type: 'verify-password', payload: { password: input.value } });
   if (!valid) {
     const err = $('pwd-error');
-    err.textContent = '密码错误，请重试';
+    err.textContent = t('blockedWrongPwd');
     err.classList.remove('hidden');
     return;
   }
@@ -126,7 +127,7 @@ async function submitPassword() {
 
 function showUnlockOptions() {
   $('pwd-error').classList.add('hidden');
-  $('pwd-hint').textContent = '请选择操作：';
+  $('pwd-hint').textContent = t('blockedChooseAction');
   $<HTMLInputElement>('pwd-input').classList.add('hidden');
   $('btn-pwd-ok').classList.add('hidden');
   $('btn-forget').classList.add('hidden');
@@ -137,11 +138,11 @@ function showUnlockOptions() {
 function showSecurityQuestion() {
   const sec = state.security;
   if (!sec.question) return;
-  $('pwd-hint').textContent = '忘记密码：回答安全问题进行重置';
+  $('pwd-hint').textContent = t('blockedSecHint');
   $<HTMLInputElement>('pwd-input').classList.add('hidden');
   $('btn-pwd-ok').classList.remove('hidden');
   $('btn-forget').classList.add('hidden');
-  $('sec-question').textContent = `问题：${sec.question}`;
+  $('sec-question').textContent = t('blockedSecQuestion', [sec.question]);
   $('sec-wrap').classList.remove('hidden');
   $<HTMLInputElement>('sec-input').focus();
 }
@@ -151,7 +152,7 @@ async function submitSecurityAnswer() {
   const res = await send({ type: 'reset-password-via-security', payload: { answer } });
   if (!res.ok) {
     const err = $('pwd-error');
-    err.textContent = res.error ?? '回答错误';
+    err.textContent = res.error ?? t('blockedSecWrong');
     err.classList.remove('hidden');
     return;
   }
@@ -160,7 +161,7 @@ async function submitSecurityAnswer() {
   $('btn-pwd-ok').classList.add('hidden');
   $('new-pwd-box').classList.remove('hidden');
   $('new-pwd-value').textContent = res.password;
-  $('pwd-hint').textContent = '已重置密码';
+  $('pwd-hint').textContent = t('blockedPwdReset');
   // 展示后进入操作选项
   setTimeout(() => {
     $('new-pwd-box').classList.add('hidden');
@@ -234,7 +235,7 @@ setInterval(() => {
   const decision = decisionNow();
   const profile = getActiveProfile(state);
   if (decision.status === 'blocked' && decision.countdownRemainingMs != null && profile.settings.blockPage.showCountdown) {
-    $('countdown').textContent = `距可访问还有 ${formatRemaining(decision.countdownRemainingMs)}`;
+    $('countdown').textContent = t('blockedCountdown', [formatRemaining(decision.countdownRemainingMs)]);
   } else {
     render();
   }

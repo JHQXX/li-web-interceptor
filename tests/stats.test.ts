@@ -42,8 +42,8 @@ describe('computeTodayStats', () => {
     expect(new Date(startOfToday(now)).getHours()).toBe(0);
   });
   it('actionLabel', () => {
-    expect(actionLabel('blocked')).toBe('拦截页');
-    expect(actionLabel('keyword')).toBe('关键词');
+    expect(actionLabel('blocked')).toBe('actionBlocked');
+    expect(actionLabel('keyword')).toBe('actionKeyword');
   });
 });
 

@@ -3,30 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>网站拦截器</title>
+    <title>__MSG_appName__</title>
   </head>
   <body>
     <header class="header">
-      <div class="brand"><span class="logo-icon">🛡️</span> 拦截器</div>
+      <div class="brand"><span class="logo-icon">🛡️</span> __MSG_popupBrand__</div>
       <div class="header-right">
-        <button id="btn-theme" class="icon-btn" title="切换深色/浅色">🌙</button>
+        <button id="btn-theme" class="icon-btn" title="__MSG_popupThemeToggle__">🌙</button>
         <label class="switch"><input id="lock-toggle" type="checkbox" /><span class="slider"></span></label>
       </div>
     </header>
 
     <section class="current">
-      <div id="current-host" class="host">当前网站：--</div>
+      <div id="current-host" class="host">__MSG_popupUnknownSite__</div>
       <div class="row">
         <select id="block-type" class="select">
-          <option value="permanent">永久拦截</option>
-          <option value="timewise">计时拦截 30 分钟</option>
-          <option value="attemptwise">按次拦截 5 次</option>
+          <option value="permanent">__MSG_popupTypePermanent__</option>
+          <option value="timewise">__MSG_popupTypeTimewise__</option>
+          <option value="attemptwise">__MSG_popupTypeAttemptwise__</option>
         </select>
-        <button id="btn-block" class="btn btn-primary">拦截本站</button>
+        <button id="btn-block" class="btn btn-primary">__MSG_popupBlockThis__</button>
       </div>
-      <button id="btn-unblock" class="btn btn-danger hidden">从拦截中移除本站</button>
+      <button id="btn-unblock" class="btn btn-danger hidden">__MSG_popupUnblock__</button>
       <div class="row wlrow">
-        <button id="btn-whitelist" class="btn btn-secondary">加入白名单</button>
+        <button id="btn-whitelist" class="btn btn-secondary">__MSG_popupWhitelist__</button>
         <label class="wl-mode" title="开启后除白名单外全部拦截">
           <input id="wl-mode-toggle" type="checkbox" /> 全站白名单
         </label>
@@ -35,23 +35,23 @@
 
     <section class="pomodoro">
       <div class="pomo-head">
-        <span id="pomo-status">🍅 番茄钟</span>
+        <span id="pomo-status">__MSG_popupPomodoro__</span>
         <span id="pomo-time" class="pomo-time">25:00</span>
         <div class="pomo-btns">
-          <button id="pomo-start" class="btn btn-small btn-primary">开始</button>
-          <button id="pomo-pause" class="btn btn-small hidden">暂停</button>
-          <button id="pomo-resume" class="btn btn-small hidden">继续</button>
-          <button id="pomo-stop" class="btn btn-small hidden">停止</button>
+          <button id="pomo-start" class="btn btn-small btn-primary">__MSG_pomodoroStart__</button>
+          <button id="pomo-pause" class="btn btn-small hidden">__MSG_pomodoroPause__</button>
+          <button id="pomo-resume" class="btn btn-small hidden">__MSG_pomodoroResume__</button>
+          <button id="pomo-stop" class="btn btn-small hidden">__MSG_pomodoroStop__</button>
         </div>
       </div>
     </section>
 
     <section class="list-section">
-      <h3>已拦截（<span id="block-count">0</span>）</h3>
+      <h3 id="block-heading"></h3><span id="block-count" class="hidden">0</span>
       <ul id="block-list" class="list"></ul>
     </section>
 
-    <footer><a id="link-options" href="#">设置</a></footer>
+    <footer><a id="link-options" href="#">__MSG_popupSettings__</a></footer>
 
     <script type="module" src="./main.ts"></script>
   </body>

@@ -138,12 +138,16 @@ export interface SecuritySettings {
   answerSalt?: string;
 }
 
-/** 付费同步（后开，现为免费预留） */
+/** 同步（免费）配置；凭据以 AES-GCM 加密存储 */
 export interface SyncSettings {
   provider: SyncProviderId;
   enabled: boolean;
   lastSyncAt: number | null;
   lastError: string | null;
+  /** AES-GCM 加密的配置 JSON */
+  configEnc?: string;
+  /** 加密密钥 */
+  encKey?: string;
 }
 
 export type PomodoroStatus = 'idle' | 'focus' | 'break' | 'paused';

@@ -12,10 +12,11 @@ import {
 } from '@/utils/storage';
 import { decide, resolveBlockTarget, computePatterns } from '@/utils/rules';
 import { getHostname, normalizeHost } from '@/utils/domain';
-import { hashPassword, verifyPassword, generatePassword } from '@/utils/crypto';
+import { hashPassword, verifyPassword, generatePassword, encryptText, decryptText } from '@/utils/crypto';
 import { buildSnapshot, serializeSnapshot, parseSnapshot, applySnapshot } from '@/utils/snapshot';
 import { uid } from '@/utils/id';
-import { PAID_SYNC_ENABLED, getSyncProvider } from '@/sync';
+import { getSyncProvider } from '@/sync';
+import type { SyncConfigInput } from '@/sync/types';
 import {
   pomodoroAdvance,
   pomodoroPause,
@@ -24,6 +25,7 @@ import {
   pomodoroStart,
   pomodoroStop,
 } from '@/utils/time';
+import { t } from '@/utils/i18n';
 import type { Message, AddBlockPayload, AddWhitelistPayload } from '@/utils/messaging';
 import type {
   AppState,
@@ -178,7 +180,7 @@ async function processUrl(url: string, tabId: number) {
     state = pushHistory(state, {
       url,
       host,
-      label: decision.keyword ?? decision.rule?.text ?? '全站白名单模式',
+      label: decision.keyword ?? decision.rule?.text ?? t('actionAllowlist'),
       action,
     });
     changed = true;
@@ -238,8 +240,8 @@ async function updateBadge(state?: AppState) {
 
 async function setupContextMenus() {
   await browser.contextMenus.removeAll();
-  browser.contextMenus.create({ id: MENU_BLOCK_PAGE, title: '加入网站拦截器', contexts: ['page', 'frame'] });
-  browser.contextMenus.create({ id: MENU_BLOCK_LINK, title: '拦截此链接的网站', contexts: ['link'] });
+  browser.contextMenus.create({ id: MENU_BLOCK_PAGE, title: t('ctxBlockSite'), contexts: ['page', 'frame'] });
+  browser.contextMenus.create({ id: MENU_BLOCK_LINK, title: t('ctxBlockLink'), contexts: ['link'] });
 }
 
 async function handleContextMenuClick(info: {
@@ -298,11 +300,11 @@ browser.alarms.onAlarm.addListener(async (alarm) => {
     await updateState((s) => ({ ...s, pomodoro: adv.state }));
     await ensurePomodoroAlarm({ ...state, pomodoro: adv.state });
     if (adv.state.status === 'break') {
-      await notify('🍅 专注结束', '休息一下吧');
+      await notify(t('notifyFocusEnd'), t('notifyBreakStart'));
     } else if (adv.state.status === 'focus') {
-      await notify('🍅 休息结束', '开始新的专注');
+      await notify(t('notifyBreakEnd'), t('notifyFocusStart'));
     } else if (adv.state.status === 'idle') {
-      await notify('🎉 番茄钟完成', `今日完成 ${adv.state.sessionsCompleted} 个专注`);
+      await notify(t('notifyPomoDone'), t('notifyPomoDoneMsg', [adv.state.sessionsCompleted]));
     }
   }
   await updateBadge();
@@ -314,7 +316,7 @@ function setLockEnabledState(state: AppState, enabled: boolean): { state: AppSta
   const now = Date.now();
   if (enabled) {
     if (state.cooldownMinutes > 0 && state.cooldownUntil != null && state.cooldownUntil > now) {
-      return { state, error: '冷却中' };
+      return { state, error: t('coolingActive') };
     }
     return { state: { ...state, lockEnabled: true, cooldownUntil: null } };
   }
@@ -409,6 +411,38 @@ async function handleCommand(command: string) {
       await addBlockForHost(host);
     }
   }
+}
+
+// ---------------------------------------------------------------- 同步配置
+
+async function getSyncConfig(state: AppState): Promise<SyncConfigInput | null> {
+  const sync = state.sync;
+  if (!sync.configEnc || !sync.encKey) return null;
+  try {
+    const json = await decryptText(sync.encKey, sync.configEnc);
+    const cfg = JSON.parse(json) as SyncConfigInput;
+    return cfg;
+  } catch {
+    return null;
+  }
+}
+
+async function setSyncConfig(payload: { provider: 'webdav' | 's3'; endpoint: string; path: string; username?: string; password?: string; region?: string; bucket?: string; accessKey?: string; secretKey?: string }) {
+  const state = await loadState();
+  const encKey = state.sync.encKey ?? Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  const cfg: SyncConfigInput = {
+    provider: payload.provider,
+    endpoint: payload.endpoint.trim(),
+    path: payload.path.trim(),
+    username: payload.username,
+    password: payload.password,
+    region: payload.region,
+    bucket: payload.bucket,
+    accessKey: payload.accessKey,
+    secretKey: payload.secretKey,
+  };
+  const configEnc = await encryptText(encKey, JSON.stringify(cfg));
+  await updateState((s) => ({ ...s, sync: { ...s.sync, provider: payload.provider, enabled: true, configEnc, encKey, lastError: null } }));
 }
 
 // ---------------------------------------------------------------- 消息处理
@@ -572,7 +606,7 @@ async function handleMessage(message: Message) {
     }
     case 'set-security-question': {
       const answer = message.payload.answer.trim();
-      if (!answer) return { ok: false, error: '请填写安全问题答案' } as const;
+      if (!answer) return { ok: false, error: t('pwdSecurityNeedAnswer') } as const;
       const { hash, salt } = await hashPassword(answer);
       await updateState((s) => ({ ...s, security: { question: message.payload.question, answerHash: hash, answerSalt: salt } }));
       return { ok: true } as const;
@@ -580,9 +614,9 @@ async function handleMessage(message: Message) {
     case 'reset-password-via-security': {
       const state = await loadState();
       const sec = state.security;
-      if (!sec.answerHash || !sec.answerSalt) return { ok: false, error: '尚未设置安全问题' } as const;
+      if (!sec.answerHash || !sec.answerSalt) return { ok: false, error: t('securityNotSet') } as const;
       const valid = await verifyPassword(message.payload.answer.trim(), sec.answerHash, sec.answerSalt);
-      if (!valid) return { ok: false, error: '安全问题回答错误' } as const;
+      if (!valid) return { ok: false, error: t('securityAnswerWrong') } as const;
       const password = generatePassword();
       const { hash, salt } = await hashPassword(password);
       await updateState((s) => ({ ...s, password: { enabled: true, hash, salt } }));
@@ -608,7 +642,7 @@ async function handleMessage(message: Message) {
         const src = getActiveProfile(s);
         const newProfile: Profile = {
           id: uid('prof_'),
-          name: message.payload.name.trim() || '新档案',
+          name: message.payload.name.trim() || t('profileDefaultName'),
           blockList: message.payload.inherit ? [...src.blockList] : [],
           whitelist: message.payload.inherit ? [...src.whitelist] : [],
           keywords: message.payload.inherit ? [...src.keywords] : [],
@@ -636,8 +670,8 @@ async function handleMessage(message: Message) {
     }
     case 'delete-profile': {
       const state = await loadState();
-      if (state.profiles.length <= 1) return { ok: false, error: '至少保留一个档案' } as const;
-      if (state.activeProfileId === message.payload.id) return { ok: false, error: '请先切换到其他档案' } as const;
+      if (state.profiles.length <= 1) return { ok: false, error: t('profileDeleteErrLast') } as const;
+      if (state.activeProfileId === message.payload.id) return { ok: false, error: t('profileDeleteErrActive') } as const;
       await updateState((s) => ({ ...s, profiles: s.profiles.filter((p) => p.id !== message.payload.id) }));
       return { ok: true } as const;
     }
@@ -685,11 +719,11 @@ async function handleMessage(message: Message) {
       const state = await loadState();
       const profile = getActiveProfile(state);
       if (message.payload.kind === 'block') {
-        const rows = [['网站', '匹配模式', '拦截类型', '状态', '原因']];
+        const rows = [[t('site'), t('colMatch'), t('colType'), t('blStatus'), t('colReason')]];
         for (const r of profile.blockList) rows.push([r.text, r.matchMode, r.blockType, r.status, r.reason]);
         return { ok: true, csv: toCsv(rows), filename: 'block-list.csv' } as const;
       }
-      const rows = [['放行域名', '匹配模式', '类型', '状态']];
+      const rows = [[t('allowDomain'), t('colMatch'), t('colType'), t('blStatus')]];
       for (const r of profile.whitelist) rows.push([r.text, r.matchMode, r.type, r.status]);
       return { ok: true, csv: toCsv(rows), filename: 'whitelist.csv' } as const;
     }
@@ -740,14 +774,51 @@ async function handleMessage(message: Message) {
       await updateState((s) => ({ ...s, theme: message.payload.theme }));
       return { ok: true } as const;
     }
+    case 'set-sync-config': {
+      await setSyncConfig(message.payload);
+      return { ok: true } as const;
+    }
     case 'sync-test': {
-      if (!PAID_SYNC_ENABLED) return { ok: false, error: '同步功能尚未开放' } as const;
-      const provider = getSyncProvider(message.payload.provider);
-      if (!provider) return { ok: false, error: '未知同步提供方' } as const;
-      return provider.test({ provider: message.payload.provider });
+      const state = await loadState();
+      const cfg = await getSyncConfig(state);
+      if (!cfg) return { ok: false, error: t('syncConfigNeeded') } as const;
+      const provider = getSyncProvider(cfg.provider);
+      if (!provider) return { ok: false, error: t('syncUnknownProvider') } as const;
+      return provider.test(cfg);
+    }
+    case 'sync-push': {
+      const state = await loadState();
+      const cfg = await getSyncConfig(state);
+      if (!cfg) return { ok: false, error: t('syncConfigNeeded') } as const;
+      const provider = getSyncProvider(cfg.provider);
+      if (!provider) return { ok: false, error: t('syncUnknownProvider') } as const;
+      const snapshot = buildSnapshot(state);
+      const result = await provider.push(cfg, snapshot);
+      if (result.ok) {
+        await updateState((s) => ({ ...s, sync: { ...s.sync, lastSyncAt: Date.now(), lastError: null } }));
+        return { ok: true, exportedAt: snapshot.exportedAt } as const;
+      }
+      await updateState((s) => ({ ...s, sync: { ...s.sync, lastError: result.error ?? null } }));
+      return { ok: false, error: result.error } as const;
+    }
+    case 'sync-pull': {
+      const state = await loadState();
+      const cfg = await getSyncConfig(state);
+      if (!cfg) return { ok: false, error: t('syncConfigNeeded') } as const;
+      const provider = getSyncProvider(cfg.provider);
+      if (!provider) return { ok: false, error: t('syncUnknownProvider') } as const;
+      const result = await provider.pull(cfg);
+      if (result.ok && result.snapshot) {
+        const next = applySnapshot(state, result.snapshot);
+        await saveState(next);
+        await updateState((s) => ({ ...s, sync: { ...s.sync, lastSyncAt: Date.now(), lastError: null } }));
+        return { ok: true, exportedAt: result.snapshot.exportedAt } as const;
+      }
+      await updateState((s) => ({ ...s, sync: { ...s.sync, lastError: result.error ?? null } }));
+      return { ok: false, error: result.error } as const;
     }
     default: {
-      return { ok: false, error: '未知消息类型' } as unknown as never;
+      return { ok: false, error: t('unknown') } as unknown as never;
     }
   }
 }

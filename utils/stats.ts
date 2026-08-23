@@ -2,6 +2,7 @@
  * 今日统计（纯函数，可单测）：基于历史记录计算拦截概览。
  */
 import type { HistoryEntry, HistoryAction } from './types';
+import { t } from './i18n';
 
 export interface DayStats {
   totalBlocked: number;
@@ -29,19 +30,15 @@ export function computeTodayStats(history: HistoryEntry[], now: number = Date.no
     .map(([host, count]) => ({ host, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
-  return {
-    totalBlocked: today.length,
-    byAction,
-    topSites,
-  };
+  return { totalBlocked: today.length, byAction, topSites };
 }
 
 export function actionLabel(action: HistoryAction): string {
   const map: Record<HistoryAction, string> = {
-    blocked: '拦截页',
-    silent: '静默',
-    keyword: '关键词',
-    allowlist: '全站白名单',
+    blocked: 'actionBlocked',
+    silent: 'actionSilent',
+    keyword: 'actionKeyword',
+    allowlist: 'actionAllowlist',
   };
-  return map[action] ?? action;
+  return t(map[action] ?? 'actionBlocked');
 }

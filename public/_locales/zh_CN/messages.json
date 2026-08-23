@@ -1,0 +1,824 @@
+{
+  "appName": {
+    "message": "LI 网站拦截器"
+  },
+  "appDesc": {
+    "message": "拦截指定网站：匹配模式、拦截类型、白名单、关键词、档案、番茄钟、统计、同步。"
+  },
+  "versionShort": {
+    "message": "v2"
+  },
+  "navBlockList": {
+    "message": "拦截列表"
+  },
+  "navWhitelist": {
+    "message": "白名单"
+  },
+  "navKeyword": {
+    "message": "关键词"
+  },
+  "navHistory": {
+    "message": "历史"
+  },
+  "navStats": {
+    "message": "统计"
+  },
+  "navProfile": {
+    "message": "档案"
+  },
+  "navPomodoro": {
+    "message": "番茄钟"
+  },
+  "navSettings": {
+    "message": "设置"
+  },
+  "navData": {
+    "message": "数据"
+  },
+  "navSync": {
+    "message": "同步"
+  },
+  "enableBlocking": {
+    "message": "启用拦截"
+  },
+  "profileOf": {
+    "message": "档案：$1"
+  },
+  "add": {
+    "message": "添加"
+  },
+  "save": {
+    "message": "保存"
+  },
+  "cancel": {
+    "message": "取消"
+  },
+  "confirm": {
+    "message": "确认"
+  },
+  "remove": {
+    "message": "移除"
+  },
+  "enable": {
+    "message": "启用"
+  },
+  "disabled": {
+    "message": "已暂停"
+  },
+  "blocking": {
+    "message": "拦截中"
+  },
+  "allowed": {
+    "message": "放行"
+  },
+  "search": {
+    "message": "搜索"
+  },
+  "empty": {
+    "message": "暂无数据"
+  },
+  "blAddPlaceholder": {
+    "message": "输入域名 / 关键字 / URL / 通配（* 表示全部）"
+  },
+  "blMatch": {
+    "message": "匹配"
+  },
+  "blType": {
+    "message": "类型"
+  },
+  "blRedirectOptional": {
+    "message": "重定向(可选)"
+  },
+  "blMin": {
+    "message": "分钟"
+  },
+  "blTimes": {
+    "message": "次数"
+  },
+  "blStatus": {
+    "message": "状态"
+  },
+  "blEmpty": {
+    "message": "还没有拦截任何网站"
+  },
+  "blSearchPlaceholder": {
+    "message": "搜索拦截列表…"
+  },
+  "blTemplate": {
+    "message": "模板"
+  },
+  "blTemplateConfirm": {
+    "message": "将以下网站加入拦截列表（域名+衍生/永久）？"
+  },
+  "blTemplateAdded": {
+    "message": "已添加模板「$1」"
+  },
+  "matchDomain": {
+    "message": "域名+衍生"
+  },
+  "matchContain": {
+    "message": "包含"
+  },
+  "matchExact": {
+    "message": "精确域名"
+  },
+  "matchPattern": {
+    "message": "通配*"
+  },
+  "matchFull": {
+    "message": "全URL"
+  },
+  "btypePermanent": {
+    "message": "永久"
+  },
+  "btypeTimewise": {
+    "message": "计时"
+  },
+  "btypeAttemptwise": {
+    "message": "按次"
+  },
+  "btypeSchedule": {
+    "message": "排程"
+  },
+  "wlAddPlaceholder": {
+    "message": "输入放行域名 / 关键字 / URL"
+  },
+  "wlMatch": {
+    "message": "匹配"
+  },
+  "wlType": {
+    "message": "类型"
+  },
+  "wlStatus": {
+    "message": "状态"
+  },
+  "wlEmpty": {
+    "message": "白名单为空"
+  },
+  "wlSearchPlaceholder": {
+    "message": "搜索白名单…"
+  },
+  "wtypePermanent": {
+    "message": "永久放行"
+  },
+  "wtypeAttemptwise": {
+    "message": "按次放行"
+  },
+  "wtypeSchedule": {
+    "message": "排程放行"
+  },
+  "perDay": {
+    "message": "次/日"
+  },
+  "kwAddPlaceholder": {
+    "message": "输入关键字，如：购物、视频"
+  },
+  "kwEnabled": {
+    "message": "启用关键词拦截"
+  },
+  "kwTip": {
+    "message": "开启后，任何包含关键字的 URL 都会被拦截。"
+  },
+  "kwEmpty": {
+    "message": "暂无关键词"
+  },
+  "historyEnabled": {
+    "message": "记录历史"
+  },
+  "historyClear": {
+    "message": "清空历史"
+  },
+  "historySearch": {
+    "message": "搜索历史…"
+  },
+  "historyFilterAll": {
+    "message": "全部方式"
+  },
+  "historyEmpty": {
+    "message": "暂无拦截记录"
+  },
+  "historyNoMatch": {
+    "message": "暂无匹配记录"
+  },
+  "historyTime": {
+    "message": "时间"
+  },
+  "historySite": {
+    "message": "网站"
+  },
+  "historyHit": {
+    "message": "命中"
+  },
+  "historyWay": {
+    "message": "方式"
+  },
+  "actionBlocked": {
+    "message": "拦截"
+  },
+  "actionSilent": {
+    "message": "静默"
+  },
+  "actionKeyword": {
+    "message": "关键词"
+  },
+  "actionAllowlist": {
+    "message": "全站白名单"
+  },
+  "statsTodayBlocked": {
+    "message": "今日拦截"
+  },
+  "statsBlocked": {
+    "message": "拦截页"
+  },
+  "statsKeyword": {
+    "message": "关键词"
+  },
+  "statsSilent": {
+    "message": "静默"
+  },
+  "statsPomodoro": {
+    "message": "今日番茄"
+  },
+  "statsTop": {
+    "message": "今日被拦截 Top 网站"
+  },
+  "statsEmpty": {
+    "message": "今日还没有拦截记录"
+  },
+  "profileNew": {
+    "message": "新档案名称，如：工作 / 学习"
+  },
+  "profileInherit": {
+    "message": "继承当前档案数据"
+  },
+  "profileCreate": {
+    "message": "新建档案"
+  },
+  "profileTip": {
+    "message": "每个档案拥有独立的拦截列表、白名单、关键词与设置，一键切换场景。"
+  },
+  "profileActive": {
+    "message": "当前"
+  },
+  "profileSwitch": {
+    "message": "切换"
+  },
+  "profileRename": {
+    "message": "重命名"
+  },
+  "profileDelete": {
+    "message": "删除"
+  },
+  "profileDeleteErrActive": {
+    "message": "请先切换到其他档案"
+  },
+  "profileDeleteErrLast": {
+    "message": "至少保留一个档案"
+  },
+  "profileNewName": {
+    "message": "新名称："
+  },
+  "pomodoroTitle": {
+    "message": "番茄钟"
+  },
+  "pomodoroFocusMin": {
+    "message": "专注(分)"
+  },
+  "pomodoroBreakMin": {
+    "message": "休息(分)"
+  },
+  "pomodoroCycles": {
+    "message": "轮数"
+  },
+  "pomodoroStart": {
+    "message": "开始"
+  },
+  "pomodoroPause": {
+    "message": "暂停"
+  },
+  "pomodoroResume": {
+    "message": "继续"
+  },
+  "pomodoroStop": {
+    "message": "停止"
+  },
+  "pomodoroSessions": {
+    "message": "今日完成 $1 个专注。"
+  },
+  "pomodoroStatusIdle": {
+    "message": "未开始"
+  },
+  "pomodoroStatusFocus": {
+    "message": "🔥 专注中"
+  },
+  "pomodoroStatusBreak": {
+    "message": "☕ 休息中"
+  },
+  "pomodoroStatusPaused": {
+    "message": "⏸ 已暂停"
+  },
+  "bpTitle": {
+    "message": "拦截页设置"
+  },
+  "bpTitleLabel": {
+    "message": "标题"
+  },
+  "bpMessageLabel": {
+    "message": "提示文字"
+  },
+  "bpType": {
+    "message": "命中后动作"
+  },
+  "bpTypeMessage": {
+    "message": "展示内置拦截页"
+  },
+  "bpTypeRedirect": {
+    "message": "重定向到 URL"
+  },
+  "bpRedirect": {
+    "message": "重定向 URL（可选）"
+  },
+  "bpAutoClose": {
+    "message": "N 秒后自动关闭（0=不关闭）"
+  },
+  "bpShowCountdown": {
+    "message": "显示倒计时"
+  },
+  "bpCountdownMin": {
+    "message": "“定时解锁”默认时长（分钟）"
+  },
+  "bpSave": {
+    "message": "保存拦截页设置"
+  },
+  "bpSaved": {
+    "message": "拦截页设置已保存"
+  },
+  "variantTitle": {
+    "message": "衍生网站默认策略"
+  },
+  "variantSub": {
+    "message": "拦截所有子域名"
+  },
+  "variantTld": {
+    "message": "拦截常见 TLD 变体（.com/.cn/.net 等）"
+  },
+  "variantMirror": {
+    "message": "拦截已知镜像站（如 youtube.com ↔ youtu.be）"
+  },
+  "variantSave": {
+    "message": "保存衍生策略"
+  },
+  "variantSaved": {
+    "message": "衍生策略已保存"
+  },
+  "pwdTitle": {
+    "message": "密码与安全问题"
+  },
+  "pwdEnabled": {
+    "message": "启用密码"
+  },
+  "pwdGen": {
+    "message": "生成新密码"
+  },
+  "pwdShowOnce": {
+    "message": "新密码（仅展示一次，请抄写保存）："
+  },
+  "pwdCopy": {
+    "message": "复制"
+  },
+  "pwdCopied": {
+    "message": "已复制"
+  },
+  "pwdSecurityQuestion": {
+    "message": "安全问题（用于忘记密码找回）"
+  },
+  "pwdSecurityAnswer": {
+    "message": "安全答案"
+  },
+  "pwdSaveSecurity": {
+    "message": "保存安全问题"
+  },
+  "pwdSecuritySaved": {
+    "message": "安全问题已保存"
+  },
+  "pwdSecurityNeedAnswer": {
+    "message": "请填写安全答案"
+  },
+  "behaviorTitle": {
+    "message": "行为"
+  },
+  "behaviorWlMode": {
+    "message": "全站白名单模式（除白名单外全部拦截）"
+  },
+  "behaviorSilent": {
+    "message": "静默拦截（命中后直接关闭标签页）"
+  },
+  "behaviorCooldown": {
+    "message": "禁用冷却（分钟，关闭总开关后需等待才能重开）"
+  },
+  "appearanceTitle": {
+    "message": "外观"
+  },
+  "appearanceDark": {
+    "message": "深色模式"
+  },
+  "dataTitle": {
+    "message": "数据管理"
+  },
+  "dataExport": {
+    "message": "导出 JSON"
+  },
+  "dataImport": {
+    "message": "导入 JSON"
+  },
+  "dataExportCsv": {
+    "message": "导出拦截列表 CSV"
+  },
+  "dataExportWlCsv": {
+    "message": "导出白名单 CSV"
+  },
+  "dataReset": {
+    "message": "清空数据"
+  },
+  "dataResetConfirm": {
+    "message": "确定清空所有拦截数据？此操作不可恢复。"
+  },
+  "dataExported": {
+    "message": "已导出数据文件"
+  },
+  "dataImported": {
+    "message": "导入成功"
+  },
+  "dataImportFail": {
+    "message": "导入失败：$1"
+  },
+  "dataResetDone": {
+    "message": "已清空数据"
+  },
+  "syncTitle": {
+    "message": "WebDAV / S3 同步"
+  },
+  "syncSoon": {
+    "message": "功能已开放"
+  },
+  "syncTip": {
+    "message": "将拦截列表、白名单、关键词、档案等数据同步到你自己的存储空间（WebDAV / S3），跨设备保持一致。"
+  },
+  "syncProvider": {
+    "message": "存储类型"
+  },
+  "syncEndpoint": {
+    "message": "存储地址 / Endpoint"
+  },
+  "syncPath": {
+    "message": "路径 / Bucket"
+  },
+  "syncUser": {
+    "message": "账号 / Access Key"
+  },
+  "syncPass": {
+    "message": "密码 / Secret Key"
+  },
+  "syncRegion": {
+    "message": "Region"
+  },
+  "syncSave": {
+    "message": "保存配置"
+  },
+  "syncTest": {
+    "message": "测试连接"
+  },
+  "syncPush": {
+    "message": "上传数据"
+  },
+  "syncPull": {
+    "message": "下载数据"
+  },
+  "syncConfigSaved": {
+    "message": "同步配置已保存"
+  },
+  "syncStatus": {
+    "message": "状态：$1"
+  },
+  "syncOk": {
+    "message": "正常"
+  },
+  "syncError": {
+    "message": "错误"
+  },
+  "syncNever": {
+    "message": "从未同步"
+  },
+  "syncPullConfirm": {
+    "message": "下载将替换本地全部数据，确定继续？"
+  },
+  "syncLastSync": {
+    "message": "上次同步：$1"
+  },
+  "popupBrand": {
+    "message": "拦截器"
+  },
+  "popupThemeToggle": {
+    "message": "切换深色/浅色"
+  },
+  "popupCurrentSite": {
+    "message": "当前网站：$1"
+  },
+  "popupUnknownSite": {
+    "message": "当前网站：无法识别"
+  },
+  "popupBlockType": {
+    "message": "拦截类型"
+  },
+  "popupTypePermanent": {
+    "message": "永久拦截"
+  },
+  "popupTypeTimewise": {
+    "message": "计时拦截 30 分钟"
+  },
+  "popupTypeAttemptwise": {
+    "message": "按次拦截 5 次"
+  },
+  "popupBlockThis": {
+    "message": "拦截本站"
+  },
+  "popupUnblock": {
+    "message": "从拦截中移除本站"
+  },
+  "popupWhitelist": {
+    "message": "加入白名单"
+  },
+  "popupInWhitelist": {
+    "message": "已在白名单"
+  },
+  "popupWlMode": {
+    "message": "全站白名单"
+  },
+  "popupCooldown": {
+    "message": "冷却中，$1 分钟后可开启"
+  },
+  "popupBlockedCount": {
+    "message": "已拦截（$1）"
+  },
+  "popupEmptyBlock": {
+    "message": "还没有拦截任何网站"
+  },
+  "popupSettings": {
+    "message": "设置"
+  },
+  "popupPomodoro": {
+    "message": "🍅 番茄钟"
+  },
+  "blockedTitleDefault": {
+    "message": "该网站已被拦截"
+  },
+  "blockedMsgDefault": {
+    "message": "专注当前任务，完成后再回来。"
+  },
+  "blockedContinue": {
+    "message": "继续访问"
+  },
+  "blockedNowAccessible": {
+    "message": "现在可以访问，继续"
+  },
+  "blockedTimer": {
+    "message": "定时解锁"
+  },
+  "blockedUnlock": {
+    "message": "需要提前访问"
+  },
+  "blockedAutoClose": {
+    "message": "本页将在 $1 秒后自动关闭"
+  },
+  "blockedCountdown": {
+    "message": "距可访问还有 $1"
+  },
+  "blockedModalTitle": {
+    "message": "解锁或修改拦截"
+  },
+  "blockedPwdHint": {
+    "message": "输入随机密码（仅首次设置时展示一次）："
+  },
+  "blockedNoPwd": {
+    "message": "未启用随机密码保护，可直接操作："
+  },
+  "blockedPwdPlaceholder": {
+    "message": "输入随机密码"
+  },
+  "blockedWrongPwd": {
+    "message": "密码错误，请重试"
+  },
+  "blockedForget": {
+    "message": "忘记密码？回答安全问题"
+  },
+  "blockedSecHint": {
+    "message": "忘记密码：回答安全问题进行重置"
+  },
+  "blockedSecQuestion": {
+    "message": "问题：$1"
+  },
+  "blockedSecPlaceholder": {
+    "message": "回答安全问题"
+  },
+  "blockedSecWrong": {
+    "message": "回答错误"
+  },
+  "blockedChooseAction": {
+    "message": "请选择操作："
+  },
+  "blockedNewPwd": {
+    "message": "新密码（仅展示一次，请抄写）："
+  },
+  "blockedPwdReset": {
+    "message": "已重置密码"
+  },
+  "blockedSession": {
+    "message": "临时访问"
+  },
+  "blockedRemove": {
+    "message": "从拦截列表移除"
+  },
+  "blockedOpenSettings": {
+    "message": "打开设置"
+  },
+  "cmdToggleLock": {
+    "message": "开关网站拦截"
+  },
+  "cmdBlockTab": {
+    "message": "拦截当前网站"
+  },
+  "notifyFocusEnd": {
+    "message": "🍅 专注结束"
+  },
+  "notifyBreakStart": {
+    "message": "休息一下吧"
+  },
+  "notifyBreakEnd": {
+    "message": "🍅 休息结束"
+  },
+  "notifyFocusStart": {
+    "message": "开始新的专注"
+  },
+  "notifyPomoDone": {
+    "message": "🎉 番茄钟完成"
+  },
+  "notifyPomoDoneMsg": {
+    "message": "今日完成 $1 个专注"
+  },
+  "ctxBlockSite": {
+    "message": "加入网站拦截器"
+  },
+  "ctxBlockLink": {
+    "message": "拦截此链接的网站"
+  },
+  "syncNotOpen": {
+    "message": "同步尚未开放"
+  },
+  "dayMon": {
+    "message": "一"
+  },
+  "dayTue": {
+    "message": "二"
+  },
+  "dayWed": {
+    "message": "三"
+  },
+  "dayThu": {
+    "message": "四"
+  },
+  "dayFri": {
+    "message": "五"
+  },
+  "daySat": {
+    "message": "六"
+  },
+  "daySun": {
+    "message": "日"
+  },
+  "weekPrefix": {
+    "message": "周$1"
+  },
+  "to": {
+    "message": "至"
+  },
+  "emptyNoMatch": {
+    "message": "没有匹配的规则"
+  },
+  "emptyWlNoMatch": {
+    "message": "没有匹配的条目"
+  },
+  "everyDay": {
+    "message": "每天"
+  },
+  "searchPlaceholder": {
+    "message": "输入域名 / 关键字 / URL / 通配（* 表示全部）"
+  },
+  "statusBlocking": {
+    "message": "拦截中"
+  },
+  "statusPaused": {
+    "message": "已暂停"
+  },
+  "everyday": {
+    "message": "每天"
+  },
+  "unknown": {
+    "message": "未知"
+  },
+  "cooling": {
+    "message": "冷却中，$1 分钟后可重新开启"
+  },
+  "syncConfigNeeded": {
+    "message": "请先保存同步配置"
+  },
+  "syncPushed": {
+    "message": "已上传数据"
+  },
+  "syncPulled": {
+    "message": "已下载数据"
+  },
+  "syncPullNoRemote": {
+    "message": "远端暂无数据"
+  },
+  "saveFailed": {
+    "message": "保存失败"
+  },
+  "close": {
+    "message": "关闭"
+  },
+  "profileCurrent": {
+    "message": "档案：$1"
+  },
+  "m": {
+    "message": "m"
+  },
+  "site": {
+    "message": "网站"
+  },
+  "allowDomain": {
+    "message": "放行域名"
+  },
+  "tplVideo": {
+    "message": "视频"
+  },
+  "tplSocial": {
+    "message": "社交"
+  },
+  "tplShop": {
+    "message": "购物"
+  },
+  "tplNews": {
+    "message": "资讯"
+  },
+  "tplGame": {
+    "message": "游戏"
+  },
+  "tplVideoDesc": {
+    "message": "youtube / bilibili / 抖音 等"
+  },
+  "tplSocialDesc": {
+    "message": "微博 / 知乎 / 小红书 等"
+  },
+  "tplShopDesc": {
+    "message": "淘宝 / 京东 / 拼多多 等"
+  },
+  "tplNewsDesc": {
+    "message": "今日头条 / 腾讯新闻 等"
+  },
+  "tplGameDesc": {
+    "message": "Steam / 4399 等"
+  },
+  "perDayLabel": {
+    "message": "每日次数"
+  },
+  "cooldownNone": {
+    "message": "0（不启用）"
+  },
+  "coolingActive": {
+    "message": "冷却中"
+  },
+  "syncUnknownProvider": {
+    "message": "未知同步提供方"
+  },
+  "securityNotSet": {
+    "message": "尚未设置安全问题"
+  },
+  "securityAnswerWrong": {
+    "message": "安全问题回答错误"
+  },
+  "profileDefaultName": {
+    "message": "新档案"
+  },
+  "colMatch": {
+    "message": "匹配模式"
+  },
+  "colType": {
+    "message": "拦截类型"
+  },
+  "colReason": {
+    "message": "原因"
+  },
+  "syncBucket": {
+    "message": "Bucket"
+  }
+}

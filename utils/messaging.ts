@@ -35,6 +35,18 @@ export interface AddWhitelistPayload {
   schedule?: TimeWindow;
 }
 
+export interface SyncConfigPayload {
+  provider: 'webdav' | 's3';
+  endpoint: string;
+  path: string;
+  username?: string;
+  password?: string;
+  region?: string;
+  bucket?: string;
+  accessKey?: string;
+  secretKey?: string;
+}
+
 export type Message =
   | { type: 'get-state' }
   | { type: 'get-tab-info' }
@@ -81,7 +93,10 @@ export type Message =
   | { type: 'pomodoro-stop' }
   | { type: 'pomodoro-get' }
   | { type: 'set-theme'; payload: { theme: Theme } }
-  | { type: 'sync-test'; payload: { provider: 'webdav' | 's3' } };
+  | { type: 'set-sync-config'; payload: SyncConfigPayload }
+  | { type: 'sync-test'; payload: { provider: 'webdav' | 's3' } }
+  | { type: 'sync-push' }
+  | { type: 'sync-pull' };
 
 export type MessageResponse<T extends Message> = T extends { type: 'get-state' }
   ? { ok: true; state: AppState }
@@ -101,7 +116,7 @@ export type MessageResponse<T extends Message> = T extends { type: 'get-state' }
                 ? { ok: boolean; error?: string; remainingMs?: number }
                 : T extends { type: 'pomodoro-get' }
                   ? { ok: true; state: PomodoroState; remainingSec: number }
-                  : T extends { type: 'sync-test' }
+                  : T extends { type: 'sync-test' | 'sync-push' | 'sync-pull' }
                     ? { ok: boolean; error?: string }
                     : { ok: true };
 

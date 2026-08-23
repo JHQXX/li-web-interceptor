@@ -3,291 +3,291 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>网站拦截器 - 设置</title>
+    <title>__MSG_appName__ - __MSG_navSettings__</title>
   </head>
   <body>
     <header class="main-heading">
       <div class="logo">
         <span class="logo-icon">🛡️</span>
         <div class="logo-title">
-          <span class="app-name">LI 网站拦截器</span>
-          <span class="version_name">v2</span>
+          <span class="app-name">__MSG_appName__</span>
+          <span class="version_name">__MSG_versionShort__</span>
         </div>
       </div>
       <div class="header-right">
         <span id="profile-badge" class="profile-badge"></span>
-        <label class="switch-row">启用拦截
+        <label class="switch-row">__MSG_enableBlocking__
           <label class="switch"><input id="lock-toggle" type="checkbox" /><span class="slider"></span></label>
         </label>
       </div>
     </header>
 
     <nav class="tabs-nav">
-      <li data-tab="block" class="tab-active"><a href="javascript:void(0)">拦截列表</a></li>
-      <li data-tab="whitelist"><a href="javascript:void(0)">白名单</a></li>
-      <li data-tab="keyword"><a href="javascript:void(0)">关键词</a></li>
-      <li data-tab="history"><a href="javascript:void(0)">历史</a></li>
-      <li data-tab="stats"><a href="javascript:void(0)">统计</a></li>
-      <li data-tab="profile"><a href="javascript:void(0)">档案</a></li>
-      <li data-tab="pomodoro"><a href="javascript:void(0)">番茄钟</a></li>
-      <li data-tab="settings"><a href="javascript:void(0)">设置</a></li>
-      <li data-tab="data"><a href="javascript:void(0)">数据</a></li>
-      <li data-tab="sync"><a href="javascript:void(0)">同步</a></li>
+      <li data-tab="block" class="tab-active"><a href="javascript:void(0)">__MSG_navBlockList__</a></li>
+      <li data-tab="whitelist"><a href="javascript:void(0)">__MSG_navWhitelist__</a></li>
+      <li data-tab="keyword"><a href="javascript:void(0)">__MSG_statsKeyword__</a></li>
+      <li data-tab="history"><a href="javascript:void(0)">__MSG_navHistory__</a></li>
+      <li data-tab="stats"><a href="javascript:void(0)">__MSG_navStats__</a></li>
+      <li data-tab="profile"><a href="javascript:void(0)">__MSG_navProfile__</a></li>
+      <li data-tab="pomodoro"><a href="javascript:void(0)">__MSG_pomodoroTitle__</a></li>
+      <li data-tab="settings"><a href="javascript:void(0)">__MSG_navSettings__</a></li>
+      <li data-tab="data"><a href="javascript:void(0)">__MSG_navData__</a></li>
+      <li data-tab="sync"><a href="javascript:void(0)">__MSG_navSync__</a></li>
     </nav>
 
     <main class="main-tabs">
-      <!-- ============ 拦截列表 ============ -->
+      <!-- ============ __MSG_navBlockList__ ============ -->
       <section id="tab-block" class="tab-panel">
         <div class="add-box">
           <div class="add-row">
-            <input id="bl-text" type="text" placeholder="输入域名 / 关键字 / URL / 通配（* 表示全部）" />
-            <button id="btn-add-block" class="btn btn-primary">添加</button>
+            <input id="bl-text" type="text" placeholder="__MSG_blAddPlaceholder__" />
+            <button id="btn-add-block" class="btn btn-primary">__MSG_add__</button>
           </div>
           <div class="add-row2">
-            <label>匹配 <select id="bl-mode">
-              <option value="domain">域名+衍生</option>
-              <option value="contain">包含关键字</option>
-              <option value="exact">精确域名</option>
-              <option value="pattern">通配 *</option>
-              <option value="full">全 URL 精确</option>
+            <label>__MSG_blMatch__ <select id="bl-mode">
+              <option value="domain">__MSG_matchDomain__</option>
+              <option value="contain">__MSG_matchContain__</option>
+              <option value="exact">__MSG_matchExact__</option>
+              <option value="pattern">__MSG_matchPattern__</option>
+              <option value="full">__MSG_matchFull__</option>
             </select></label>
-            <label>类型 <select id="bl-type">
-              <option value="permanent">永久</option>
-              <option value="timewise">计时</option>
-              <option value="attemptwise">按次</option>
-              <option value="schedule">排程</option>
+            <label>__MSG_blType__ <select id="bl-type">
+              <option value="permanent">__MSG_btypePermanent__</option>
+              <option value="timewise">__MSG_btypeTimewise__</option>
+              <option value="attemptwise">__MSG_btypeAttemptwise__</option>
+              <option value="schedule">__MSG_btypeSchedule__</option>
             </select></label>
-            <span id="bl-param-timewise" class="param hidden">分钟 <input id="bl-minutes" type="number" min="1" value="30" class="mini-input" /></span>
-            <span id="bl-param-attempt" class="param hidden">次数 <input id="bl-attempts" type="number" min="1" value="5" class="mini-input" /></span>
+            <span id="bl-param-timewise" class="param hidden">__MSG_blMin__ <input id="bl-minutes" type="number" min="1" value="30" class="mini-input" /></span>
+            <span id="bl-param-attempt" class="param hidden">__MSG_blTimes__ <input id="bl-attempts" type="number" min="1" value="5" class="mini-input" /></span>
             <span id="bl-param-schedule" class="param hidden">
               <span class="days">
-                <label><input type="checkbox" value="1" /> 一</label><label><input type="checkbox" value="2" /> 二</label>
-                <label><input type="checkbox" value="3" /> 三</label><label><input type="checkbox" value="4" /> 四</label>
-                <label><input type="checkbox" value="5" /> 五</label><label><input type="checkbox" value="6" /> 六</label>
-                <label><input type="checkbox" value="0" /> 日</label>
+                <label><input type="checkbox" value="1" /> __MSG_dayMon__</label><label><input type="checkbox" value="2" /> __MSG_dayTue__</label>
+                <label><input type="checkbox" value="3" /> __MSG_dayWed__</label><label><input type="checkbox" value="4" /> __MSG_dayThu__</label>
+                <label><input type="checkbox" value="5" /> __MSG_dayFri__</label><label><input type="checkbox" value="6" /> __MSG_daySat__</label>
+                <label><input type="checkbox" value="0" /> __MSG_daySun__</label>
               </span>
-              <input id="bl-sch-start" type="time" value="09:00" class="time" />至<input id="bl-sch-end" type="time" value="18:00" class="time" />
+              <input id="bl-sch-start" type="time" value="09:00" class="time" />__MSG_to__<input id="bl-sch-end" type="time" value="18:00" class="time" />
             </span>
-            <label>重定向(可选) <input id="bl-redirect" type="text" placeholder="https://…" class="wide" /></label>
+            <label>__MSG_blRedirectOptional__ <input id="bl-redirect" type="text" placeholder="https://…" class="wide" /></label>
           </div>
         </div>
         <div class="toolbar">
-          <input id="block-search" type="text" placeholder="搜索拦截列表…" class="search" />
-          <span class="templates">模板：
-            <button data-tpl="video" class="tpl">视频</button>
-            <button data-tpl="social" class="tpl">社交</button>
-            <button data-tpl="shop" class="tpl">购物</button>
-            <button data-tpl="news" class="tpl">资讯</button>
-            <button data-tpl="game" class="tpl">游戏</button>
+          <input id="block-search" type="text" placeholder="搜索__MSG_navBlockList__…" class="search" />
+          <span class="templates">__MSG_blTemplate__：
+            <button data-tpl="video" class="tpl">__MSG_tplVideo__</button>
+            <button data-tpl="social" class="tpl">__MSG_tplSocial__</button>
+            <button data-tpl="shop" class="tpl">__MSG_tplShop__</button>
+            <button data-tpl="news" class="tpl">__MSG_tplNews__</button>
+            <button data-tpl="game" class="tpl">__MSG_tplGame__</button>
           </span>
         </div>
         <div class="table-wrap">
           <table class="list-table">
-            <thead><tr><th>网站</th><th>匹配</th><th>类型</th><th>状态</th><th></th></tr></thead>
+            <thead><tr><th>__MSG_site__</th><th>__MSG_blMatch__</th><th>__MSG_blType__</th><th>__MSG_blStatus__</th><th></th></tr></thead>
             <tbody id="block-tbody"></tbody>
           </table>
         </div>
       </section>
 
-      <!-- ============ 白名单 ============ -->
+      <!-- ============ __MSG_navWhitelist__ ============ -->
       <section id="tab-whitelist" class="tab-panel hidden">
         <div class="add-box">
           <div class="add-row">
-            <input id="wl-text" type="text" placeholder="输入放行域名 / 关键字 / URL" />
-            <button id="btn-add-wl" class="btn btn-primary">添加</button>
+            <input id="wl-text" type="text" placeholder="__MSG_wlAddPlaceholder__" />
+            <button id="btn-add-wl" class="btn btn-primary">__MSG_add__</button>
           </div>
           <div class="add-row2">
-            <label>匹配 <select id="wl-mode">
-              <option value="domain">域名+衍生</option>
-              <option value="contain">包含关键字</option>
-              <option value="exact">精确域名</option>
-              <option value="pattern">通配 *</option>
-              <option value="full">全 URL 精确</option>
+            <label>__MSG_blMatch__ <select id="wl-mode">
+              <option value="domain">__MSG_matchDomain__</option>
+              <option value="contain">__MSG_matchContain__</option>
+              <option value="exact">__MSG_matchExact__</option>
+              <option value="pattern">__MSG_matchPattern__</option>
+              <option value="full">__MSG_matchFull__</option>
             </select></label>
-            <label>类型 <select id="wl-type">
-              <option value="permanent">永久放行</option>
-              <option value="attemptwise">按次放行</option>
-              <option value="schedule">排程放行</option>
+            <label>__MSG_blType__ <select id="wl-type">
+              <option value="permanent">__MSG_wtypePermanent__</option>
+              <option value="attemptwise">__MSG_wtypeAttemptwise__</option>
+              <option value="schedule">__MSG_wtypeSchedule__</option>
             </select></label>
-            <span id="wl-param-attempt" class="param hidden">每日次数 <input id="wl-attempts" type="number" min="1" value="10" class="mini-input" /></span>
+            <span id="wl-param-attempt" class="param hidden">__MSG_perDayLabel__ <input id="wl-attempts" type="number" min="1" value="10" class="mini-input" /></span>
             <span id="wl-param-schedule" class="param hidden">
               <span class="days">
-                <label><input type="checkbox" value="1" /> 一</label><label><input type="checkbox" value="2" /> 二</label>
-                <label><input type="checkbox" value="3" /> 三</label><label><input type="checkbox" value="4" /> 四</label>
-                <label><input type="checkbox" value="5" /> 五</label><label><input type="checkbox" value="6" /> 六</label>
-                <label><input type="checkbox" value="0" /> 日</label>
+                <label><input type="checkbox" value="1" /> __MSG_dayMon__</label><label><input type="checkbox" value="2" /> __MSG_dayTue__</label>
+                <label><input type="checkbox" value="3" /> __MSG_dayWed__</label><label><input type="checkbox" value="4" /> __MSG_dayThu__</label>
+                <label><input type="checkbox" value="5" /> __MSG_dayFri__</label><label><input type="checkbox" value="6" /> __MSG_daySat__</label>
+                <label><input type="checkbox" value="0" /> __MSG_daySun__</label>
               </span>
-              <input id="wl-sch-start" type="time" value="09:00" class="time" />至<input id="wl-sch-end" type="time" value="18:00" class="time" />
+              <input id="wl-sch-start" type="time" value="09:00" class="time" />__MSG_to__<input id="wl-sch-end" type="time" value="18:00" class="time" />
             </span>
           </div>
         </div>
         <div class="toolbar">
-          <input id="wl-search" type="text" placeholder="搜索白名单…" class="search" />
+          <input id="wl-search" type="text" placeholder="搜索__MSG_navWhitelist__…" class="search" />
         </div>
         <div class="table-wrap">
           <table class="list-table">
-            <thead><tr><th>放行域名</th><th>匹配</th><th>类型</th><th>状态</th><th></th></tr></thead>
+            <thead><tr><th>__MSG_allowDomain__</th><th>__MSG_blMatch__</th><th>__MSG_blType__</th><th>__MSG_blStatus__</th><th></th></tr></thead>
             <tbody id="wl-tbody"></tbody>
           </table>
         </div>
       </section>
 
-      <!-- ============ 关键词 ============ -->
+      <!-- ============ __MSG_statsKeyword__ ============ -->
       <section id="tab-keyword" class="tab-panel hidden">
         <div class="card">
           <div class="add-row">
-            <input id="kw-input" type="text" placeholder="输入关键字，如：购物、视频" />
-            <button id="btn-add-kw" class="btn btn-primary">添加</button>
+            <input id="kw-input" type="text" placeholder="__MSG_kwAddPlaceholder__" />
+            <button id="btn-add-kw" class="btn btn-primary">__MSG_add__</button>
           </div>
-          <label class="switch-row">启用关键词拦截
+          <label class="switch-row">__MSG_kwEnabled__
             <label class="switch"><input id="kw-enabled" type="checkbox" /><span class="slider"></span></label>
           </label>
-          <p class="tip">开启后，任何包含关键字的 URL 都会被拦截。</p>
+          <p class="tip">__MSG_kwTip__</p>
         </div>
         <ul id="kw-list" class="kw-list"></ul>
       </section>
 
-      <!-- ============ 历史 ============ -->
+      <!-- ============ __MSG_navHistory__ ============ -->
       <section id="tab-history" class="tab-panel hidden">
         <div class="card">
           <div class="row">
-            <label class="switch-row">记录历史
+            <label class="switch-row">__MSG_historyEnabled__
               <label class="switch"><input id="history-enabled" type="checkbox" /><span class="slider"></span></label>
             </label>
-            <button id="btn-clear-history" class="btn btn-ghost">清空历史</button>
+            <button id="btn-clear-history" class="btn btn-ghost">__MSG_historyClear__</button>
           </div>
         </div>
         <div class="toolbar">
-          <input id="history-search" type="text" placeholder="搜索历史…" class="search" />
+          <input id="history-search" type="text" placeholder="__MSG_historySearch__" class="search" />
           <select id="history-filter" class="filter">
-            <option value="all">全部方式</option>
-            <option value="blocked">拦截页</option>
-            <option value="silent">静默</option>
-            <option value="keyword">关键词</option>
-            <option value="allowlist">全站白名单</option>
+            <option value="all">__MSG_historyFilterAll__</option>
+            <option value="blocked">__MSG_statsBlocked__</option>
+            <option value="silent">__MSG_statsSilent__</option>
+            <option value="keyword">__MSG_statsKeyword__</option>
+            <option value="allowlist">__MSG_actionAllowlist__</option>
           </select>
         </div>
         <div class="table-wrap">
           <table class="list-table">
-            <thead><tr><th>时间</th><th>网站</th><th>命中</th><th>方式</th></tr></thead>
+            <thead><tr><th>__MSG_historyTime__</th><th>__MSG_site__</th><th>__MSG_historyHit__</th><th>__MSG_historyWay__</th></tr></thead>
             <tbody id="history-tbody"></tbody>
           </table>
         </div>
       </section>
 
-      <!-- ============ 统计 ============ -->
+      <!-- ============ __MSG_navStats__ ============ -->
       <section id="tab-stats" class="tab-panel hidden">
         <div class="stats-grid">
-          <div class="stat-card"><div class="stat-num" id="st-total">0</div><div class="stat-label">今日拦截</div></div>
-          <div class="stat-card"><div class="stat-num" id="st-blocked">0</div><div class="stat-label">拦截页</div></div>
-          <div class="stat-card"><div class="stat-num" id="st-keyword">0</div><div class="stat-label">关键词</div></div>
-          <div class="stat-card"><div class="stat-num" id="st-silent">0</div><div class="stat-label">静默</div></div>
-          <div class="stat-card"><div class="stat-num" id="st-pomo">0</div><div class="stat-label">今日番茄</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-total">0</div><div class="stat-label">__MSG_statsTodayBlocked__</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-blocked">0</div><div class="stat-label">__MSG_statsBlocked__</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-keyword">0</div><div class="stat-label">__MSG_statsKeyword__</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-silent">0</div><div class="stat-label">__MSG_statsSilent__</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-pomo">0</div><div class="stat-label">__MSG_statsPomodoro__</div></div>
         </div>
         <div class="card">
-          <h2>今日被拦截 Top 网站</h2>
+          <h2>__MSG_statsTop__</h2>
           <ol id="st-top" class="top-list"></ol>
         </div>
       </section>
 
-      <!-- ============ 档案 ============ -->
+      <!-- ============ __MSG_navProfile__ ============ -->
       <section id="tab-profile" class="tab-panel hidden">
         <div class="card">
           <div class="add-row">
-            <input id="prof-name" type="text" placeholder="新档案名称，如：工作 / 学习" />
-            <label class="inherit"><input id="prof-inherit" type="checkbox" /> 继承当前档案数据</label>
-            <button id="btn-add-profile" class="btn btn-primary">新建档案</button>
+            <input id="prof-name" type="text" placeholder="__MSG_profileNew__" />
+            <label class="inherit"><input id="prof-inherit" type="checkbox" /> __MSG_profileInherit__</label>
+            <button id="btn-add-profile" class="btn btn-primary">__MSG_profileCreate__</button>
           </div>
-          <p class="tip">每个档案拥有独立的拦截列表、白名单、关键词与设置，一键切换场景。</p>
+          <p class="tip">__MSG_profileTip__</p>
         </div>
         <ul id="profile-list" class="kw-list"></ul>
       </section>
 
-      <!-- ============ 番茄钟 ============ -->
+      <!-- ============ __MSG_pomodoroTitle__ ============ -->
       <section id="tab-pomodoro" class="tab-panel hidden">
         <div class="card">
-          <h2>番茄钟</h2>
+          <h2>__MSG_pomodoroTitle__</h2>
           <div class="add-row2">
-            <label>专注(分) <input id="pomo-focus" type="number" min="1" value="25" class="mini-input" /></label>
-            <label>休息(分) <input id="pomo-break" type="number" min="1" value="5" class="mini-input" /></label>
-            <label>轮数 <input id="pomo-cycles" type="number" min="1" value="4" class="mini-input" /></label>
+            <label>__MSG_pomodoroFocusMin__ <input id="pomo-focus" type="number" min="1" value="25" class="mini-input" /></label>
+            <label>__MSG_pomodoroBreakMin__ <input id="pomo-break" type="number" min="1" value="5" class="mini-input" /></label>
+            <label>__MSG_pomodoroCycles__ <input id="pomo-cycles" type="number" min="1" value="4" class="mini-input" /></label>
           </div>
           <div class="row" style="margin-top:10px;">
             <span id="pomo-status" class="pomo-status"></span>
             <span id="pomo-time" class="pomo-time"></span>
-            <button id="pomo-start" class="btn btn-primary">开始</button>
-            <button id="pomo-pause" class="btn hidden">暂停</button>
-            <button id="pomo-resume" class="btn hidden">继续</button>
-            <button id="pomo-stop" class="btn btn-danger hidden">停止</button>
+            <button id="pomo-start" class="btn btn-primary">__MSG_pomodoroStart__</button>
+            <button id="pomo-pause" class="btn hidden">__MSG_pomodoroPause__</button>
+            <button id="pomo-resume" class="btn hidden">__MSG_pomodoroResume__</button>
+            <button id="pomo-stop" class="btn btn-danger hidden">__MSG_pomodoroStop__</button>
           </div>
-          <p class="tip">今日完成 <span id="pomo-sessions">0</span> 个专注。</p>
+          <p class="tip"><span id="pomo-sessions">0</span></p>
         </div>
       </section>
 
-      <!-- ============ 设置 ============ -->
+      <!-- ============ __MSG_navSettings__ ============ -->
       <section id="tab-settings" class="tab-panel hidden">
         <div class="card">
-          <h2>拦截页设置</h2>
-          <div class="field"><label>标题</label><input id="bp-title" type="text" /></div>
-          <div class="field"><label>提示文字</label><input id="bp-message" type="text" /></div>
+          <h2>__MSG_bpTitle__</h2>
+          <div class="field"><label>__MSG_bpTitleLabel__</label><input id="bp-title" type="text" /></div>
+          <div class="field"><label>__MSG_bpMessageLabel__</label><input id="bp-message" type="text" /></div>
           <div class="field">
-            <label>命中后动作</label>
+            <label>__MSG_bpType__</label>
             <select id="bp-type">
-              <option value="message">展示内置拦截页</option>
-              <option value="redirect">重定向到 URL</option>
+              <option value="message">__MSG_bpTypeMessage__</option>
+              <option value="redirect">__MSG_bpTypeRedirect__</option>
             </select>
           </div>
-          <div class="field"><label>重定向 URL（可选）</label><input id="bp-redirect" type="text" placeholder="https://…" /></div>
-          <div class="field"><label>N 秒后自动关闭（0=不关闭）</label><input id="bp-autoclose" type="number" min="0" value="0" class="mini-input" /></div>
-          <div class="field"><label class="switch-row">显示倒计时
+          <div class="field"><label>__MSG_bpRedirect__</label><input id="bp-redirect" type="text" placeholder="https://…" /></div>
+          <div class="field"><label>__MSG_bpAutoClose__</label><input id="bp-autoclose" type="number" min="0" value="0" class="mini-input" /></div>
+          <div class="field"><label class="switch-row">__MSG_bpShowCountdown__
             <label class="switch"><input id="bp-countdown-toggle" type="checkbox" /><span class="slider"></span></label>
           </label></div>
-          <div class="field"><label>“定时解锁”默认时长（分钟）</label><input id="bp-countdown-min" type="number" min="1" value="30" class="mini-input" /></div>
-          <button id="btn-save-bp" class="btn btn-primary">保存拦截页设置</button>
+          <div class="field"><label>__MSG_bpCountdownMin__</label><input id="bp-countdown-min" type="number" min="1" value="30" class="mini-input" /></div>
+          <button id="btn-save-bp" class="btn btn-primary">__MSG_bpSave__</button>
         </div>
 
         <div class="card">
-          <h2>衍生网站默认策略</h2>
-          <div class="field"><label class="switch-row">拦截所有子域名
+          <h2>__MSG_variantTitle__</h2>
+          <div class="field"><label class="switch-row">__MSG_variantSub__
             <label class="switch"><input id="v-sub" type="checkbox" /><span class="slider"></span></label>
           </label></div>
-          <div class="field"><label class="switch-row">拦截常见 TLD 变体（.com/.cn/.net 等）
+          <div class="field"><label class="switch-row">__MSG_variantTld__
             <label class="switch"><input id="v-tld" type="checkbox" /><span class="slider"></span></label>
           </label></div>
-          <div class="field"><label class="switch-row">拦截已知镜像站（如 youtube.com ↔ youtu.be）
+          <div class="field"><label class="switch-row">__MSG_variantMirror__
             <label class="switch"><input id="v-mirror" type="checkbox" /><span class="slider"></span></label>
           </label></div>
-          <button id="btn-save-variants" class="btn btn-primary">保存衍生策略</button>
+          <button id="btn-save-variants" class="btn btn-primary">__MSG_variantSave__</button>
         </div>
 
         <div class="card">
-          <h2>密码与安全问题</h2>
+          <h2>__MSG_pwdTitle__</h2>
           <div class="row">
-            <label class="switch-row">启用密码
+            <label class="switch-row">__MSG_pwdEnabled__
               <label class="switch"><input id="pwd-toggle" type="checkbox" /><span class="slider"></span></label>
             </label>
-            <button id="btn-gen-pwd" class="btn">生成新密码</button>
+            <button id="btn-gen-pwd" class="btn">__MSG_pwdGen__</button>
           </div>
-          <div id="pwd-show" class="pwd-show hidden"><strong>新密码（仅展示一次，请抄写保存）：</strong><code id="pwd-value"></code><button id="btn-copy-pwd" class="btn btn-small">复制</button></div>
+          <div id="pwd-show" class="pwd-show hidden"><strong>__MSG_pwdShowOnce__</strong><code id="pwd-value"></code><button id="btn-copy-pwd" class="btn btn-small">__MSG_pwdCopy__</button></div>
           <div class="field" style="margin-top:12px;">
-            <label>安全问题（用于忘记密码找回）</label>
+            <label>__MSG_pwdSecurityQuestion__</label>
             <select id="sec-question"></select>
           </div>
-          <div class="field"><label>安全答案</label><input id="sec-answer" type="text" /></div>
-          <button id="btn-save-security" class="btn">保存安全问题</button>
+          <div class="field"><label>__MSG_pwdSecurityAnswer__</label><input id="sec-answer" type="text" /></div>
+          <button id="btn-save-security" class="btn">__MSG_pwdSaveSecurity__</button>
         </div>
 
         <div class="card">
-          <h2>行为</h2>
-          <div class="field"><label class="switch-row">全站白名单模式（除白名单外全部拦截）
+          <h2>__MSG_behaviorTitle__</h2>
+          <div class="field"><label class="switch-row">__MSG_behaviorWlMode__
             <label class="switch"><input id="wl-mode-global" type="checkbox" /><span class="slider"></span></label>
           </label></div>
-          <div class="field"><label class="switch-row">静默拦截（命中后直接关闭标签页）
+          <div class="field"><label class="switch-row">__MSG_behaviorSilent__
             <label class="switch"><input id="silent-mode" type="checkbox" /><span class="slider"></span></label>
           </label></div>
-          <div class="field"><label>禁用冷却（分钟，关闭总开关后需等待才能重开）</label>
+          <div class="field"><label>__MSG_behaviorCooldown__</label>
             <select id="cooldown-min">
-              <option value="0">0（不启用）</option>
+              <option value="0">__MSG_cooldownNone__</option>
               <option value="1">1</option>
               <option value="5">5</option>
               <option value="10">10</option>
@@ -297,42 +297,54 @@
         </div>
 
         <div class="card">
-          <h2>外观</h2>
-          <div class="field"><label class="switch-row">深色模式
+          <h2>__MSG_appearanceTitle__</h2>
+          <div class="field"><label class="switch-row">__MSG_appearanceDark__
             <label class="switch"><input id="theme-dark" type="checkbox" /><span class="slider"></span></label>
           </label></div>
         </div>
       </section>
 
-      <!-- ============ 数据 ============ -->
+      <!-- ============ __MSG_navData__ ============ -->
       <section id="tab-data" class="tab-panel hidden">
         <div class="card">
-          <h2>数据管理</h2>
+          <h2>__MSG_dataTitle__</h2>
           <div class="row">
-            <button id="btn-export" class="btn">导出 JSON</button>
-            <button id="btn-import" class="btn">导入 JSON</button>
-            <button id="btn-export-csv" class="btn btn-secondary">导出拦截列表 CSV</button>
-            <button id="btn-export-wl-csv" class="btn btn-secondary">导出白名单 CSV</button>
-            <button id="btn-reset" class="btn btn-danger">清空数据</button>
+            <button id="btn-export" class="btn">__MSG_dataExport__</button>
+            <button id="btn-import" class="btn">__MSG_dataImport__</button>
+            <button id="btn-export-csv" class="btn btn-secondary">__MSG_dataExportCsv__</button>
+            <button id="btn-export-wl-csv" class="btn btn-secondary">__MSG_dataExportWlCsv__</button>
+            <button id="btn-reset" class="btn btn-danger">__MSG_dataReset__</button>
             <input id="import-file" type="file" accept=".json,application/json" class="hidden" />
           </div>
           <p id="data-msg" class="data-msg"></p>
         </div>
       </section>
 
-      <!-- ============ 同步 ============ -->
+      <!-- ============ __MSG_navSync__ ============ -->
       <section id="tab-sync" class="tab-panel hidden">
         <div class="card">
-          <h2>WebDAV / S3 同步 <span class="tag">即将上线</span></h2>
-          <p class="tip">将拦截列表、白名单、关键词、档案等数据同步到你自己的存储空间（WebDAV / S3），跨设备保持一致。免费功能，开发中。</p>
-          <div class="field"><label>存储类型</label><select id="sync-provider"><option value="webdav">WebDAV</option><option value="s3">S3</option></select></div>
-          <div class="field"><label>存储地址 / Endpoint</label><input id="sync-endpoint" type="text" disabled /></div>
-          <div class="field"><label>路径 / Bucket</label><input id="sync-path" type="text" disabled /></div>
-          <div class="field"><label>账号 / Access Key</label><input id="sync-user" type="text" disabled /></div>
-          <div class="field"><label>密码 / Secret Key</label><input id="sync-pass" type="password" disabled /></div>
-          <button id="btn-sync-test" class="btn" disabled>测试连接</button>
+          <h2>__MSG_syncTitle__ <span class="tag">__MSG_syncSoon__</span></h2>
+          <p class="tip">__MSG_syncTip__</p>
+          <div class="field">
+            <label>__MSG_syncProvider__</label>
+            <select id="sync-provider"><option value="webdav">WebDAV</option><option value="s3">S3</option></select>
+          </div>
+          <div class="field"><label>__MSG_syncEndpoint__</label><input id="sync-endpoint" type="text" placeholder="https://dav.example.com / https://s3.region.amazonaws.com" /></div>
+          <div class="field hidden" id="sync-bucket-field"><label>__MSG_syncBucket__</label><input id="sync-bucket" type="text" placeholder="my-bucket" /></div>
+          <div class="field"><label>__MSG_syncPath__</label><input id="sync-path" type="text" placeholder="liwi-sync.json" /></div>
+          <div class="field hidden" id="sync-region-field"><label>__MSG_syncRegion__</label><input id="sync-region" type="text" value="us-east-1" /></div>
+          <div class="field"><label>__MSG_syncUser__</label><input id="sync-user" type="text" /></div>
+          <div class="field"><label>__MSG_syncPass__</label><input id="sync-pass" type="password" /></div>
+          <div class="row">
+            <button id="btn-sync-save" class="btn btn-primary">__MSG_syncSave__</button>
+            <button id="btn-sync-test" class="btn">__MSG_syncTest__</button>
+            <button id="btn-sync-push" class="btn btn-secondary">__MSG_syncPush__</button>
+            <button id="btn-sync-pull" class="btn btn-secondary">__MSG_syncPull__</button>
+          </div>
+          <p id="sync-status" class="data-msg"></p>
         </div>
       </section>
+
     </main>
 
     <script type="module" src="./main.ts"></script>

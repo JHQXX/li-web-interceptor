@@ -3,7 +3,8 @@ import { send } from '@/utils/messaging';
 import { getActiveProfile } from '@/utils/storage';
 import { minToClock, parseClockToMin, formatRemaining, pomodoroRemainingSec } from '@/utils/time';
 import { SECURITY_QUESTIONS } from '@/utils/types';
-import { computeTodayStats } from '@/utils/stats';
+import { computeTodayStats, actionLabel } from '@/utils/stats';
+import { t, weekdayWithPrefix } from '@/utils/i18n';
 import { SITE_TEMPLATES } from '@/utils/templates';
 import type { AppState, BlockRule, BlockType, MatchMode, TimeWindow, WhitelistType } from '@/utils/types';
 
@@ -16,10 +17,9 @@ let wlQuery = '';
 let historyQuery = '';
 let historyFilter = 'all';
 
-const MODE_LABEL: Record<string, string> = { domain: '域名+衍生', contain: '包含', exact: '精确域名', pattern: '通配*', full: '全URL' };
-const BTYPE_LABEL: Record<string, string> = { permanent: '永久', timewise: '计时', attemptwise: '按次', schedule: '排程' };
-const WTYPE_LABEL: Record<string, string> = { permanent: '永久放行', attemptwise: '按次放行', schedule: '排程放行' };
-const DAY_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
+const MODE_LABEL: Record<string, string> = { domain: t('matchDomain'), contain: t('matchContain'), exact: t('matchExact'), pattern: t('matchPattern'), full: t('matchFull') };
+const BTYPE_LABEL: Record<string, string> = { permanent: t('btypePermanent'), timewise: t('btypeTimewise'), attemptwise: t('btypeAttemptwise'), schedule: t('btypeSchedule') };
+const WTYPE_LABEL: Record<string, string> = { permanent: t('wtypePermanent'), attemptwise: t('wtypeAttemptwise'), schedule: t('wtypeSchedule') };
 
 // ---------- Tab 切换 ----------
 document.querySelectorAll<HTMLLIElement>('.tabs-nav li').forEach((li) => {
@@ -41,7 +41,7 @@ function applyTheme() {
 function refresh() {
   applyTheme();
   $<HTMLInputElement>('lock-toggle').checked = state.lockEnabled;
-  $('profile-badge').textContent = `档案：${getActiveProfile(state).name}`;
+  $('profile-badge').textContent = t('profileCurrent', [getActiveProfile(state).name]);
   const profile = getActiveProfile(state);
   const s = profile.settings;
   $<HTMLInputElement>('wl-mode-global').checked = s.whitelistMode;
@@ -68,6 +68,7 @@ function refresh() {
   renderStats();
   renderProfiles();
   renderPomodoro();
+  renderSync();
 }
 
 // ---------- 拦截列表 ----------
@@ -80,7 +81,7 @@ function renderBlockList() {
     !q || r.text.toLowerCase().includes(q) || (r.patterns ?? []).some((x) => x.toLowerCase().includes(q)) || (MODE_LABEL[r.matchMode] ?? '').toLowerCase().includes(q) || (BTYPE_LABEL[r.blockType] ?? '').toLowerCase().includes(q),
   );
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty">${profile.blockList.length === 0 ? '还没有拦截任何网站' : '没有匹配的规则'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">${profile.blockList.length === 0 ? t('blEmpty') : t('emptyNoMatch')}</td></tr>`;
     return;
   }
   for (const rule of list) {
@@ -108,7 +109,7 @@ function renderBlockList() {
     const sw = document.createElement('label');
     sw.className = 'switch-row';
     sw.style.cssText = 'gap:6px;font-size:12px;';
-    sw.innerHTML = `<input type="checkbox" class="mini-check" ${rule.status === 'blocked' ? 'checked' : ''}/> ${rule.status === 'blocked' ? '拦截中' : '已暂停'}`;
+    sw.innerHTML = `<input type="checkbox" class="mini-check" ${rule.status === 'blocked' ? 'checked' : ''}/> ${rule.status === 'blocked' ? t('statusBlocking') : t('statusPaused')}`;
     const swInput = sw.querySelector('input')!;
     swInput.addEventListener('change', async () => {
       await send({ type: 'set-rule-status', payload: { id: rule.id, status: swInput.checked ? 'blocked' : 'unblocked' } });
@@ -123,7 +124,7 @@ function renderBlockList() {
     const redir = document.createElement('input');
     redir.type = 'text';
     redir.className = 'rule-redirect';
-    redir.placeholder = '重定向(可选)';
+    redir.placeholder = t('blRedirectOptional');
     redir.value = rule.redirectUrl ?? '';
     redir.addEventListener('change', async () => {
       await send({ type: 'update-block', payload: { id: rule.id, changes: { redirectUrl: redir.value.trim() || undefined } } });
@@ -131,7 +132,7 @@ function renderBlockList() {
     const rm = document.createElement('button');
     rm.className = 'rm';
     rm.textContent = '✕';
-    rm.title = '移除';
+    rm.title = t('remove');
     rm.addEventListener('click', async () => {
       await send({ type: 'remove-block', payload: { id: rule.id } });
       state = await send({ type: 'get-state' }).then((r) => r.state);
@@ -151,14 +152,14 @@ function renderBlockList() {
 }
 
 function paramText(rule: BlockRule): string {
-  if (rule.blockType === 'timewise' && rule.durationMs) return ` · ${Math.round(rule.durationMs / 60000)}分`;
-  if (rule.blockType === 'attemptwise') return ` · ${rule.attempts}次`;
+  if (rule.blockType === 'timewise' && rule.durationMs) return ` · ${Math.round(rule.durationMs / 60000)}${t('blMin')}`;
+  if (rule.blockType === 'attemptwise') return ` · ${rule.attempts}${t('blTimes')}`;
   if (rule.blockType === 'schedule' && rule.schedule) return scheduleText(rule.schedule);
   return '';
 }
 
 function scheduleText(s: TimeWindow): string {
-  const days = s.days.length === 0 ? '每天' : s.days.map((d) => `周${DAY_NAMES[d]}`).join(' ');
+  const days = s.days.length === 0 ? t('everyday') : s.days.map((d) => weekdayWithPrefix(d)).join(' ');
   return ` · ${days} ${minToClock(s.startMin)}-${minToClock(s.endMin)}`;
 }
 
@@ -170,7 +171,7 @@ function renderWhitelist() {
   const q = wlQuery.toLowerCase();
   const list = profile.whitelist.filter((r) => !q || r.text.toLowerCase().includes(q) || (r.patterns ?? []).some((x) => x.toLowerCase().includes(q)));
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty">${profile.whitelist.length === 0 ? '白名单为空' : '没有匹配的条目'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">${profile.whitelist.length === 0 ? t('wlEmpty') : t('emptyWlNoMatch')}</td></tr>`;
     return;
   }
   for (const rule of list) {
@@ -183,12 +184,12 @@ function renderWhitelist() {
     const td2 = document.createElement('td');
     td2.textContent = MODE_LABEL[rule.matchMode] ?? rule.matchMode;
     const td3 = document.createElement('td');
-    td3.textContent = `${WTYPE_LABEL[rule.type] ?? rule.type}${rule.type === 'attemptwise' ? ` · ${rule.attempts}次/日` : ''}${rule.type === 'schedule' && rule.schedule ? scheduleText(rule.schedule) : ''}`;
+    td3.textContent = `${WTYPE_LABEL[rule.type] ?? rule.type}${rule.type === 'attemptwise' ? ` · ${rule.attempts}${t('perDay')}` : ''}${rule.type === 'schedule' && rule.schedule ? scheduleText(rule.schedule) : ''}`;
     const td4 = document.createElement('td');
     const sw = document.createElement('label');
     sw.className = 'switch-row';
     sw.style.cssText = 'gap:6px;font-size:12px;';
-    sw.innerHTML = `<input type="checkbox" class="mini-check" ${rule.status === 'allowed' ? 'checked' : ''}/> ${rule.status === 'allowed' ? '放行' : '停用'}`;
+    sw.innerHTML = `<input type="checkbox" class="mini-check" ${rule.status === 'allowed' ? 'checked' : ''}/> ${rule.status === 'allowed' ? t('allowed') : t('disabled')}`;
     const swInput = sw.querySelector('input')!;
     swInput.addEventListener('change', async () => {
       await send({ type: 'set-whitelist-status', payload: { id: rule.id, status: swInput.checked ? 'allowed' : 'not-allowed' } });
@@ -223,7 +224,7 @@ function renderKeywords() {
   if (profile.keywords.length === 0) {
     const li = document.createElement('li');
     li.className = 'empty';
-    li.textContent = '暂无关键词';
+    li.textContent = t('kwEmpty');
     ul.appendChild(li);
     return;
   }
@@ -237,7 +238,7 @@ function renderKeywords() {
     const sw = document.createElement('label');
     sw.className = 'switch-row';
     sw.style.cssText = 'gap:6px;font-size:12px;';
-    sw.innerHTML = `<input type="checkbox" class="mini-check" ${k.enabled ? 'checked' : ''}/> 启用`;
+    sw.innerHTML = `<input type="checkbox" class="mini-check" ${k.enabled ? 'checked' : ''}/> ${t('enable')}`;
     const swInput = sw.querySelector('input')!;
     swInput.addEventListener('change', async () => {
       await send({ type: 'toggle-keyword', payload: { id: k.id, enabled: swInput.checked } });
@@ -270,10 +271,9 @@ function renderHistory() {
     return h.host.toLowerCase().includes(q) || h.url.toLowerCase().includes(q) || h.label.toLowerCase().includes(q);
   });
   if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无匹配记录</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">' + t('historyNoMatch') + '</td></tr>';
     return;
   }
-  const ACTION: Record<string, string> = { blocked: '拦截', silent: '静默', keyword: '关键词', allowlist: '全站白名单' };
   for (const h of list.slice(0, 200)) {
     const tr = document.createElement('tr');
     const td1 = document.createElement('td');
@@ -286,7 +286,7 @@ function renderHistory() {
     const td3 = document.createElement('td');
     td3.textContent = h.label;
     const td4 = document.createElement('td');
-    td4.textContent = ACTION[h.action] ?? h.action;
+    td4.textContent = actionLabel(h.action);
     tr.appendChild(td1);
     tr.appendChild(td2);
     tr.appendChild(td3);
@@ -306,7 +306,7 @@ function renderStats() {
   const ol = $('st-top');
   ol.innerHTML = '';
   if (stats.topSites.length === 0) {
-    ol.innerHTML = '<li class="empty">今日还没有拦截记录</li>';
+    ol.innerHTML = '<li class="empty">' + t('statsEmpty') + '</li>';
     return;
   }
   for (const t of stats.topSites) {
@@ -334,7 +334,7 @@ function renderProfiles() {
     if (p.id === state.activeProfileId) {
       const badge = document.createElement('span');
       badge.className = 'active-badge';
-      badge.textContent = '当前';
+      badge.textContent = t('profileActive');
       left.appendChild(badge);
     }
     const actions = document.createElement('div');
@@ -342,7 +342,7 @@ function renderProfiles() {
     if (p.id !== state.activeProfileId) {
       const use = document.createElement('button');
       use.className = 'btn btn-small';
-      use.textContent = '切换';
+      use.textContent = t('profileSwitch');
       use.addEventListener('click', async () => {
         await send({ type: 'switch-profile', payload: { id: p.id } });
         state = await send({ type: 'get-state' }).then((r) => r.state);
@@ -352,9 +352,9 @@ function renderProfiles() {
     }
     const rename = document.createElement('button');
     rename.className = 'btn btn-small btn-ghost';
-    rename.textContent = '重命名';
+    rename.textContent = t('profileRename');
     rename.addEventListener('click', async () => {
-      const name2 = prompt('新名称：', p.name);
+      const name2 = prompt(t('profileNewName'), p.name);
       if (name2) {
         await send({ type: 'rename-profile', payload: { id: p.id, name: name2 } });
         state = await send({ type: 'get-state' }).then((r) => r.state);
@@ -363,12 +363,12 @@ function renderProfiles() {
     });
     const del = document.createElement('button');
     del.className = 'btn btn-small btn-danger';
-    del.textContent = '删除';
+    del.textContent = t('profileDelete');
     del.disabled = state.profiles.length <= 1 || p.id === state.activeProfileId;
     del.addEventListener('click', async () => {
       const res = await send({ type: 'delete-profile', payload: { id: p.id } });
       if (!res.ok) {
-        alert(res.error ?? '删除失败');
+        alert(res.error ?? t('saveFailed'));
         return;
       }
       state = await send({ type: 'get-state' }).then((r) => r.state);
@@ -385,11 +385,11 @@ function renderProfiles() {
 // ---------- 番茄钟 ----------
 function renderPomodoro() {
   const p = state.pomodoro;
-  const STATUS: Record<string, string> = { idle: '未开始', focus: '🔥 专注中', break: '☕ 休息中', paused: '⏸ 已暂停' };
-  $('pomo-status').textContent = STATUS[p.status] ?? '未开始';
+  const STATUS: Record<string, string> = { idle: t('pomodoroStatusIdle'), focus: t('pomodoroStatusFocus'), break: t('pomodoroStatusBreak'), paused: t('pomodoroStatusPaused') };
+  $('pomo-status').textContent = STATUS[p.status] ?? t('pomodoroStatusIdle');
   const sec = pomodoroRemainingSec(p);
   $('pomo-time').textContent = sec >= 0 ? formatRemaining(sec * 1000) : `${p.focusMinutes}:00`;
-  $('pomo-sessions').textContent = String(p.sessionsCompleted);
+  $('pomo-sessions').textContent = t('pomodoroSessions', [p.sessionsCompleted]);
   $<HTMLInputElement>('pomo-focus').value = String(p.focusMinutes);
   $<HTMLInputElement>('pomo-break').value = String(p.breakMinutes);
   $<HTMLInputElement>('pomo-cycles').value = String(p.totalCycles);
@@ -420,13 +420,13 @@ document.querySelectorAll<HTMLButtonElement>('.tpl').forEach((btn) => {
   btn.addEventListener('click', async () => {
     const tpl = SITE_TEMPLATES.find((t) => t.id === btn.dataset.tpl);
     if (!tpl) return;
-    if (!confirm(`将以下网站加入拦截列表（域名+衍生/永久）？\n${tpl.hosts.join('\n')}`)) return;
+    if (!confirm(`${t('blTemplateConfirm')}\n${tpl.hosts.join('\n')}`)) return;
     for (const host of tpl.hosts) {
       await send({ type: 'add-block', payload: { text: host, matchMode: 'domain', blockType: 'permanent' } });
     }
     state = await send({ type: 'get-state' }).then((r) => r.state);
     refresh();
-    flashMsg(`已添加模板「${tpl.name}」`);
+    flashMsg(t('blTemplateAdded', [t(tpl.nameKey)]));
   });
 });
 
@@ -562,7 +562,7 @@ $('lock-toggle').addEventListener('change', async (e) => {
   const res = await send({ type: 'set-lock-enabled', payload: { enabled } });
   if (!res.ok) {
     $<HTMLInputElement>('lock-toggle').checked = false;
-    alert(`冷却中，${Math.ceil((res.remainingMs ?? 0) / 60000)} 分钟后可重新开启`);
+    alert(t('cooling', [Math.ceil((res.remainingMs ?? 0) / 60000)]));
   }
   state = await send({ type: 'get-state' }).then((r) => r.state);
 });
@@ -599,7 +599,7 @@ $('btn-save-bp').addEventListener('click', async () => {
     },
   });
   state = await send({ type: 'get-state' }).then((r) => r.state);
-  flashMsg('拦截页设置已保存');
+  flashMsg(t('bpSaved'));
 });
 $('btn-save-variants').addEventListener('click', async () => {
   await send({
@@ -614,7 +614,7 @@ $('btn-save-variants').addEventListener('click', async () => {
   });
   state = await send({ type: 'get-state' }).then((r) => r.state);
   refresh();
-  flashMsg('衍生策略已保存');
+  flashMsg(t('variantSaved'));
 });
 
 // ---------- 密码与安全问题 ----------
@@ -639,7 +639,7 @@ $('btn-copy-pwd').addEventListener('click', async () => {
   await navigator.clipboard.writeText(text);
   const btn = $<HTMLButtonElement>('btn-copy-pwd');
   const old = btn.textContent;
-  btn.textContent = '已复制';
+  btn.textContent = t('pwdCopied');
   setTimeout(() => (btn.textContent = old), 1500);
 });
 
@@ -654,11 +654,11 @@ $('btn-save-security').addEventListener('click', async () => {
   const question = secSelect.value;
   const answer = $<HTMLInputElement>('sec-answer').value.trim();
   if (!answer) {
-    flashMsg('请填写安全答案', true);
+    flashMsg(t('pwdSecurityNeedAnswer'), true);
     return;
   }
   const res = await send({ type: 'set-security-question', payload: { question, answer } });
-  flashMsg(res.ok ? '安全问题已保存' : (res.error ?? '保存失败'), !res.ok);
+  flashMsg(res.ok ? t('pwdSecuritySaved') : (res.error ?? t('saveFailed')), !res.ok);
   $<HTMLInputElement>('sec-answer').value = '';
 });
 
@@ -666,7 +666,7 @@ $('btn-save-security').addEventListener('click', async () => {
 $('btn-export').addEventListener('click', async () => {
   const { json } = await send({ type: 'export-snapshot' });
   download(json, `li-web-interceptor-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
-  flashMsg('已导出数据文件');
+  flashMsg(t('dataExported'));
 });
 $('btn-import').addEventListener('click', () => $<HTMLInputElement>('import-file').click());
 $<HTMLInputElement>('import-file').addEventListener('change', async (e) => {
@@ -677,9 +677,9 @@ $<HTMLInputElement>('import-file').addEventListener('change', async (e) => {
     await send({ type: 'import-snapshot', payload: { json } });
     state = await send({ type: 'get-state' }).then((r) => r.state);
     refresh();
-    flashMsg('导入成功');
+    flashMsg(t('dataImported'));
   } catch (err) {
-    flashMsg(`导入失败：${(err as Error).message}`, true);
+    flashMsg(t('dataImportFail', [(err as Error).message]), true);
   }
   (e.target as HTMLInputElement).value = '';
 });
@@ -692,18 +692,85 @@ $('btn-export-wl-csv').addEventListener('click', async () => {
   download(r.csv, r.filename, 'text/csv');
 });
 $('btn-reset').addEventListener('click', async () => {
-  if (!confirm('确定清空所有拦截数据？此操作不可恢复。')) return;
+  if (!confirm(t('dataResetConfirm'))) return;
   await send({ type: 'reset-all' });
   state = await send({ type: 'get-state' }).then((r) => r.state);
   refresh();
-  flashMsg('已清空数据');
+  flashMsg(t('dataResetDone'));
 });
 
-// ---------- 同步（禁用态） ----------
+// ---------- 同步 ----------
+function syncProviderFields() {
+  const isS3 = $<HTMLSelectElement>('sync-provider').value === 's3';
+  $('sync-bucket-field').classList.toggle('hidden', !isS3);
+  $('sync-region-field').classList.toggle('hidden', !isS3);
+}
+
+function renderSync() {
+  const sync = state.sync;
+  $<HTMLSelectElement>('sync-provider').value = sync.provider === 's3' ? 's3' : 'webdav';
+  syncProviderFields();
+  const status = $('sync-status');
+  if (sync.lastError) {
+    status.textContent = `${t('syncStatus', [t('syncError')])}：${sync.lastError}`;
+    status.classList.add('error');
+  } else if (sync.lastSyncAt) {
+    status.textContent = t('syncLastSync', [new Date(sync.lastSyncAt).toLocaleString()]);
+    status.classList.remove('error');
+  } else {
+    status.textContent = t('syncStatus', [t('syncNever')]);
+    status.classList.remove('error');
+  }
+}
+
+$<HTMLSelectElement>('sync-provider').addEventListener('change', syncProviderFields);
+
+$('btn-sync-save').addEventListener('click', async () => {
+  const provider = $<HTMLSelectElement>('sync-provider').value as 'webdav' | 's3';
+  await send({
+    type: 'set-sync-config',
+    payload: {
+      provider,
+      endpoint: $<HTMLInputElement>('sync-endpoint').value.trim(),
+      path: $<HTMLInputElement>('sync-path').value.trim() || 'liwi-sync.json',
+      region: $<HTMLInputElement>('sync-region').value.trim() || 'us-east-1',
+      bucket: $<HTMLInputElement>('sync-bucket').value.trim(),
+      username: $<HTMLInputElement>('sync-user').value,
+      password: $<HTMLInputElement>('sync-pass').value,
+      accessKey: $<HTMLInputElement>('sync-user').value,
+      secretKey: $<HTMLInputElement>('sync-pass').value,
+    },
+  });
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  renderSync();
+  flashMsg(t('syncConfigSaved'));
+});
+
 $('btn-sync-test').addEventListener('click', async () => {
   const provider = $<HTMLSelectElement>('sync-provider').value as 'webdav' | 's3';
   const res = await send({ type: 'sync-test', payload: { provider } });
-  flashMsg(res.error ?? '连接成功', !res.ok);
+  flashMsg(res.error ?? t('syncOk'), !res.ok);
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  renderSync();
+});
+
+$('btn-sync-push').addEventListener('click', async () => {
+  const res = await send({ type: 'sync-push' });
+  flashMsg(res.ok ? t('syncPushed') : (res.error ?? t('saveFailed')), !res.ok);
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  renderSync();
+});
+
+$('btn-sync-pull').addEventListener('click', async () => {
+  if (!confirm(t('syncPullConfirm'))) return;
+  const res = await send({ type: 'sync-pull' });
+  if (res.ok) {
+    state = await send({ type: 'get-state' }).then((r) => r.state);
+    refresh();
+    flashMsg(t('syncPulled'));
+  } else {
+    flashMsg(res.error === 'remote-empty' ? t('syncPullNoRemote') : (res.error ?? t('saveFailed')), true);
+  }
 });
 
 function download(content: string, filename: string, mime: string) {

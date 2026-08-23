@@ -1,0 +1,824 @@
+{
+  "appName": {
+    "message": "LI Web Interceptor"
+  },
+  "appDesc": {
+    "message": "Block distracting websites: match modes, block types, whitelist, keywords, profiles, Pomodoro, stats, sync."
+  },
+  "versionShort": {
+    "message": "v2"
+  },
+  "navBlockList": {
+    "message": "Block List"
+  },
+  "navWhitelist": {
+    "message": "Whitelist"
+  },
+  "navKeyword": {
+    "message": "Keywords"
+  },
+  "navHistory": {
+    "message": "History"
+  },
+  "navStats": {
+    "message": "Stats"
+  },
+  "navProfile": {
+    "message": "Profiles"
+  },
+  "navPomodoro": {
+    "message": "Pomodoro"
+  },
+  "navSettings": {
+    "message": "Settings"
+  },
+  "navData": {
+    "message": "Data"
+  },
+  "navSync": {
+    "message": "Sync"
+  },
+  "enableBlocking": {
+    "message": "Enable blocking"
+  },
+  "profileOf": {
+    "message": "Profile: $1"
+  },
+  "add": {
+    "message": "Add"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "confirm": {
+    "message": "OK"
+  },
+  "remove": {
+    "message": "Remove"
+  },
+  "enable": {
+    "message": "Enable"
+  },
+  "disabled": {
+    "message": "Paused"
+  },
+  "blocking": {
+    "message": "Blocking"
+  },
+  "allowed": {
+    "message": "Allowed"
+  },
+  "search": {
+    "message": "Search"
+  },
+  "empty": {
+    "message": "No data"
+  },
+  "blAddPlaceholder": {
+    "message": "Enter domain / keyword / URL / wildcard (* blocks all)"
+  },
+  "blMatch": {
+    "message": "Match"
+  },
+  "blType": {
+    "message": "Type"
+  },
+  "blRedirectOptional": {
+    "message": "Redirect (optional)"
+  },
+  "blMin": {
+    "message": "min"
+  },
+  "blTimes": {
+    "message": "times"
+  },
+  "blStatus": {
+    "message": "Status"
+  },
+  "blEmpty": {
+    "message": "No blocked sites yet"
+  },
+  "blSearchPlaceholder": {
+    "message": "Search block list…"
+  },
+  "blTemplate": {
+    "message": "Templates"
+  },
+  "blTemplateConfirm": {
+    "message": "Add these sites to the block list (domain+variants/permanent)?"
+  },
+  "blTemplateAdded": {
+    "message": "Template \"$1\" added"
+  },
+  "matchDomain": {
+    "message": "Domain+vars"
+  },
+  "matchContain": {
+    "message": "Contain"
+  },
+  "matchExact": {
+    "message": "Exact domain"
+  },
+  "matchPattern": {
+    "message": "Wildcard*"
+  },
+  "matchFull": {
+    "message": "Full URL"
+  },
+  "btypePermanent": {
+    "message": "Permanent"
+  },
+  "btypeTimewise": {
+    "message": "Timewise"
+  },
+  "btypeAttemptwise": {
+    "message": "Attemptwise"
+  },
+  "btypeSchedule": {
+    "message": "Schedule"
+  },
+  "wlAddPlaceholder": {
+    "message": "Enter allow domain / keyword / URL"
+  },
+  "wlMatch": {
+    "message": "Match"
+  },
+  "wlType": {
+    "message": "Type"
+  },
+  "wlStatus": {
+    "message": "Status"
+  },
+  "wlEmpty": {
+    "message": "Whitelist is empty"
+  },
+  "wlSearchPlaceholder": {
+    "message": "Search whitelist…"
+  },
+  "wtypePermanent": {
+    "message": "Permanent allow"
+  },
+  "wtypeAttemptwise": {
+    "message": "Attemptwise allow"
+  },
+  "wtypeSchedule": {
+    "message": "Scheduled allow"
+  },
+  "perDay": {
+    "message": "/day"
+  },
+  "kwAddPlaceholder": {
+    "message": "Enter a keyword, e.g. shopping, video"
+  },
+  "kwEnabled": {
+    "message": "Enable keyword blocking"
+  },
+  "kwTip": {
+    "message": "When enabled, any URL containing a keyword is blocked."
+  },
+  "kwEmpty": {
+    "message": "No keywords yet"
+  },
+  "historyEnabled": {
+    "message": "Record history"
+  },
+  "historyClear": {
+    "message": "Clear history"
+  },
+  "historySearch": {
+    "message": "Search history…"
+  },
+  "historyFilterAll": {
+    "message": "All ways"
+  },
+  "historyEmpty": {
+    "message": "No block records"
+  },
+  "historyNoMatch": {
+    "message": "No matching records"
+  },
+  "historyTime": {
+    "message": "Time"
+  },
+  "historySite": {
+    "message": "Site"
+  },
+  "historyHit": {
+    "message": "Matched"
+  },
+  "historyWay": {
+    "message": "Way"
+  },
+  "actionBlocked": {
+    "message": "Blocked"
+  },
+  "actionSilent": {
+    "message": "Silent"
+  },
+  "actionKeyword": {
+    "message": "Keyword"
+  },
+  "actionAllowlist": {
+    "message": "Allowlist"
+  },
+  "statsTodayBlocked": {
+    "message": "Blocked today"
+  },
+  "statsBlocked": {
+    "message": "Block page"
+  },
+  "statsKeyword": {
+    "message": "Keyword"
+  },
+  "statsSilent": {
+    "message": "Silent"
+  },
+  "statsPomodoro": {
+    "message": "Pomodoros"
+  },
+  "statsTop": {
+    "message": "Top blocked sites today"
+  },
+  "statsEmpty": {
+    "message": "No blocks today"
+  },
+  "profileNew": {
+    "message": "New profile name, e.g. Work / Study"
+  },
+  "profileInherit": {
+    "message": "Inherit current profile data"
+  },
+  "profileCreate": {
+    "message": "Create profile"
+  },
+  "profileTip": {
+    "message": "Each profile has its own block list, whitelist, keywords and settings for one-click scene switching."
+  },
+  "profileActive": {
+    "message": "Active"
+  },
+  "profileSwitch": {
+    "message": "Switch"
+  },
+  "profileRename": {
+    "message": "Rename"
+  },
+  "profileDelete": {
+    "message": "Delete"
+  },
+  "profileDeleteErrActive": {
+    "message": "Switch to another profile first"
+  },
+  "profileDeleteErrLast": {
+    "message": "Keep at least one profile"
+  },
+  "profileNewName": {
+    "message": "New name: "
+  },
+  "pomodoroTitle": {
+    "message": "Pomodoro"
+  },
+  "pomodoroFocusMin": {
+    "message": "Focus (min)"
+  },
+  "pomodoroBreakMin": {
+    "message": "Break (min)"
+  },
+  "pomodoroCycles": {
+    "message": "Cycles"
+  },
+  "pomodoroStart": {
+    "message": "Start"
+  },
+  "pomodoroPause": {
+    "message": "Pause"
+  },
+  "pomodoroResume": {
+    "message": "Resume"
+  },
+  "pomodoroStop": {
+    "message": "Stop"
+  },
+  "pomodoroSessions": {
+    "message": "$1 focus sessions done today."
+  },
+  "pomodoroStatusIdle": {
+    "message": "Not started"
+  },
+  "pomodoroStatusFocus": {
+    "message": "🔥 Focusing"
+  },
+  "pomodoroStatusBreak": {
+    "message": "☕ On break"
+  },
+  "pomodoroStatusPaused": {
+    "message": "⏸ Paused"
+  },
+  "bpTitle": {
+    "message": "Block Page Settings"
+  },
+  "bpTitleLabel": {
+    "message": "Title"
+  },
+  "bpMessageLabel": {
+    "message": "Message"
+  },
+  "bpType": {
+    "message": "Action when blocked"
+  },
+  "bpTypeMessage": {
+    "message": "Show built-in block page"
+  },
+  "bpTypeRedirect": {
+    "message": "Redirect to URL"
+  },
+  "bpRedirect": {
+    "message": "Redirect URL (optional)"
+  },
+  "bpAutoClose": {
+    "message": "Auto close after N seconds (0=no)"
+  },
+  "bpShowCountdown": {
+    "message": "Show countdown"
+  },
+  "bpCountdownMin": {
+    "message": "Default \"timed unlock\" (minutes)"
+  },
+  "bpSave": {
+    "message": "Save block page settings"
+  },
+  "bpSaved": {
+    "message": "Block page settings saved"
+  },
+  "variantTitle": {
+    "message": "Derivative site defaults"
+  },
+  "variantSub": {
+    "message": "Block all subdomains"
+  },
+  "variantTld": {
+    "message": "Block common TLD variants (.com/.cn/.net etc.)"
+  },
+  "variantMirror": {
+    "message": "Block known mirror sites (e.g. youtube.com ↔ youtu.be)"
+  },
+  "variantSave": {
+    "message": "Save derivative settings"
+  },
+  "variantSaved": {
+    "message": "Derivative settings saved"
+  },
+  "pwdTitle": {
+    "message": "Password & Security Question"
+  },
+  "pwdEnabled": {
+    "message": "Enable password"
+  },
+  "pwdGen": {
+    "message": "Generate new password"
+  },
+  "pwdShowOnce": {
+    "message": "New password (shown once, please save it):"
+  },
+  "pwdCopy": {
+    "message": "Copy"
+  },
+  "pwdCopied": {
+    "message": "Copied"
+  },
+  "pwdSecurityQuestion": {
+    "message": "Security question (for password recovery)"
+  },
+  "pwdSecurityAnswer": {
+    "message": "Security answer"
+  },
+  "pwdSaveSecurity": {
+    "message": "Save security question"
+  },
+  "pwdSecuritySaved": {
+    "message": "Security question saved"
+  },
+  "pwdSecurityNeedAnswer": {
+    "message": "Please fill in the security answer"
+  },
+  "behaviorTitle": {
+    "message": "Behavior"
+  },
+  "behaviorWlMode": {
+    "message": "Whitelist mode (block everything except whitelist)"
+  },
+  "behaviorSilent": {
+    "message": "Silent blocking (close tab on hit)"
+  },
+  "behaviorCooldown": {
+    "message": "Disable cooldown (minutes before re-enabling after turning off)"
+  },
+  "appearanceTitle": {
+    "message": "Appearance"
+  },
+  "appearanceDark": {
+    "message": "Dark mode"
+  },
+  "dataTitle": {
+    "message": "Data Management"
+  },
+  "dataExport": {
+    "message": "Export JSON"
+  },
+  "dataImport": {
+    "message": "Import JSON"
+  },
+  "dataExportCsv": {
+    "message": "Export block list CSV"
+  },
+  "dataExportWlCsv": {
+    "message": "Export whitelist CSV"
+  },
+  "dataReset": {
+    "message": "Clear all data"
+  },
+  "dataResetConfirm": {
+    "message": "Clear all block data? This cannot be undone."
+  },
+  "dataExported": {
+    "message": "Data file exported"
+  },
+  "dataImported": {
+    "message": "Import succeeded"
+  },
+  "dataImportFail": {
+    "message": "Import failed: $1"
+  },
+  "dataResetDone": {
+    "message": "Data cleared"
+  },
+  "syncTitle": {
+    "message": "WebDAV / S3 Sync"
+  },
+  "syncSoon": {
+    "message": "Now available"
+  },
+  "syncTip": {
+    "message": "Sync block lists, whitelists, keywords and profiles to your own storage (WebDAV / S3) to keep them consistent across devices."
+  },
+  "syncProvider": {
+    "message": "Storage type"
+  },
+  "syncEndpoint": {
+    "message": "Endpoint"
+  },
+  "syncPath": {
+    "message": "Path / Bucket"
+  },
+  "syncUser": {
+    "message": "Username / Access Key"
+  },
+  "syncPass": {
+    "message": "Password / Secret Key"
+  },
+  "syncRegion": {
+    "message": "Region"
+  },
+  "syncSave": {
+    "message": "Save config"
+  },
+  "syncTest": {
+    "message": "Test connection"
+  },
+  "syncPush": {
+    "message": "Upload data"
+  },
+  "syncPull": {
+    "message": "Download data"
+  },
+  "syncConfigSaved": {
+    "message": "Sync config saved"
+  },
+  "syncStatus": {
+    "message": "Status: $1"
+  },
+  "syncOk": {
+    "message": "OK"
+  },
+  "syncError": {
+    "message": "Error"
+  },
+  "syncNever": {
+    "message": "Never synced"
+  },
+  "syncPullConfirm": {
+    "message": "Downloading will replace all local data. Continue?"
+  },
+  "syncLastSync": {
+    "message": "Last sync: $1"
+  },
+  "popupBrand": {
+    "message": "Interceptor"
+  },
+  "popupThemeToggle": {
+    "message": "Toggle dark/light"
+  },
+  "popupCurrentSite": {
+    "message": "Current site: $1"
+  },
+  "popupUnknownSite": {
+    "message": "Current site: unknown"
+  },
+  "popupBlockType": {
+    "message": "Block type"
+  },
+  "popupTypePermanent": {
+    "message": "Permanent"
+  },
+  "popupTypeTimewise": {
+    "message": "Timed 30 min"
+  },
+  "popupTypeAttemptwise": {
+    "message": "After 5 visits"
+  },
+  "popupBlockThis": {
+    "message": "Block this site"
+  },
+  "popupUnblock": {
+    "message": "Remove this site from block list"
+  },
+  "popupWhitelist": {
+    "message": "Add to whitelist"
+  },
+  "popupInWhitelist": {
+    "message": "Already whitelisted"
+  },
+  "popupWlMode": {
+    "message": "Whitelist mode"
+  },
+  "popupCooldown": {
+    "message": "Cooldown, re-enable in $1 min"
+  },
+  "popupBlockedCount": {
+    "message": "Blocked ($1)"
+  },
+  "popupEmptyBlock": {
+    "message": "No blocked sites yet"
+  },
+  "popupSettings": {
+    "message": "Settings"
+  },
+  "popupPomodoro": {
+    "message": "🍅 Pomodoro"
+  },
+  "blockedTitleDefault": {
+    "message": "This site is blocked"
+  },
+  "blockedMsgDefault": {
+    "message": "Focus on the current task and come back later."
+  },
+  "blockedContinue": {
+    "message": "Continue"
+  },
+  "blockedNowAccessible": {
+    "message": "Accessible now, continue"
+  },
+  "blockedTimer": {
+    "message": "Timed unlock"
+  },
+  "blockedUnlock": {
+    "message": "Need early access"
+  },
+  "blockedAutoClose": {
+    "message": "This page closes in $1s"
+  },
+  "blockedCountdown": {
+    "message": "Accessible in $1"
+  },
+  "blockedModalTitle": {
+    "message": "Unlock or modify blocking"
+  },
+  "blockedPwdHint": {
+    "message": "Enter the random password (shown once at setup):"
+  },
+  "blockedNoPwd": {
+    "message": "Password protection is off, you can operate directly:"
+  },
+  "blockedPwdPlaceholder": {
+    "message": "Enter random password"
+  },
+  "blockedWrongPwd": {
+    "message": "Wrong password, try again"
+  },
+  "blockedForget": {
+    "message": "Forgot password? Answer security question"
+  },
+  "blockedSecHint": {
+    "message": "Forgot password: answer the security question to reset"
+  },
+  "blockedSecQuestion": {
+    "message": "Question: $1"
+  },
+  "blockedSecPlaceholder": {
+    "message": "Answer the security question"
+  },
+  "blockedSecWrong": {
+    "message": "Wrong answer"
+  },
+  "blockedChooseAction": {
+    "message": "Choose an action:"
+  },
+  "blockedNewPwd": {
+    "message": "New password (shown once, please save it):"
+  },
+  "blockedPwdReset": {
+    "message": "Password reset"
+  },
+  "blockedSession": {
+    "message": "Temporary access"
+  },
+  "blockedRemove": {
+    "message": "Remove from block list"
+  },
+  "blockedOpenSettings": {
+    "message": "Open settings"
+  },
+  "cmdToggleLock": {
+    "message": "Toggle blocking"
+  },
+  "cmdBlockTab": {
+    "message": "Block current site"
+  },
+  "notifyFocusEnd": {
+    "message": "🍅 Focus session ended"
+  },
+  "notifyBreakStart": {
+    "message": "Take a break"
+  },
+  "notifyBreakEnd": {
+    "message": "🍅 Break ended"
+  },
+  "notifyFocusStart": {
+    "message": "Start a new focus session"
+  },
+  "notifyPomoDone": {
+    "message": "🎉 Pomodoro complete"
+  },
+  "notifyPomoDoneMsg": {
+    "message": "$1 focus sessions completed today"
+  },
+  "ctxBlockSite": {
+    "message": "Add to web interceptor"
+  },
+  "ctxBlockLink": {
+    "message": "Block this link's site"
+  },
+  "syncNotOpen": {
+    "message": "Sync not yet available"
+  },
+  "dayMon": {
+    "message": "M"
+  },
+  "dayTue": {
+    "message": "T"
+  },
+  "dayWed": {
+    "message": "W"
+  },
+  "dayThu": {
+    "message": "T"
+  },
+  "dayFri": {
+    "message": "F"
+  },
+  "daySat": {
+    "message": "S"
+  },
+  "daySun": {
+    "message": "S"
+  },
+  "weekPrefix": {
+    "message": "$1"
+  },
+  "to": {
+    "message": "to"
+  },
+  "emptyNoMatch": {
+    "message": "No matching rules"
+  },
+  "emptyWlNoMatch": {
+    "message": "No matching entries"
+  },
+  "everyDay": {
+    "message": "Every day"
+  },
+  "searchPlaceholder": {
+    "message": "Enter domain / keyword / URL / wildcard (* blocks all)"
+  },
+  "statusBlocking": {
+    "message": "Blocking"
+  },
+  "statusPaused": {
+    "message": "Paused"
+  },
+  "everyday": {
+    "message": "Every day"
+  },
+  "unknown": {
+    "message": "unknown"
+  },
+  "cooling": {
+    "message": "Cooldown, re-enable in $1 min"
+  },
+  "syncConfigNeeded": {
+    "message": "Save sync config first"
+  },
+  "syncPushed": {
+    "message": "Data uploaded"
+  },
+  "syncPulled": {
+    "message": "Data downloaded"
+  },
+  "syncPullNoRemote": {
+    "message": "No remote data"
+  },
+  "saveFailed": {
+    "message": "Save failed"
+  },
+  "close": {
+    "message": "Close"
+  },
+  "profileCurrent": {
+    "message": "Profile: $1"
+  },
+  "m": {
+    "message": "m"
+  },
+  "site": {
+    "message": "Site"
+  },
+  "allowDomain": {
+    "message": "Allow domain"
+  },
+  "tplVideo": {
+    "message": "Video"
+  },
+  "tplSocial": {
+    "message": "Social"
+  },
+  "tplShop": {
+    "message": "Shopping"
+  },
+  "tplNews": {
+    "message": "News"
+  },
+  "tplGame": {
+    "message": "Games"
+  },
+  "tplVideoDesc": {
+    "message": "youtube / bilibili / douyin etc."
+  },
+  "tplSocialDesc": {
+    "message": "weibo / zhihu / xiaohongshu etc."
+  },
+  "tplShopDesc": {
+    "message": "taobao / jd / pinduoduo etc."
+  },
+  "tplNewsDesc": {
+    "message": "toutiao / tencent news etc."
+  },
+  "tplGameDesc": {
+    "message": "steam / 4399 etc."
+  },
+  "perDayLabel": {
+    "message": "Per day"
+  },
+  "cooldownNone": {
+    "message": "0 (disabled)"
+  },
+  "coolingActive": {
+    "message": "Cooldown active"
+  },
+  "syncUnknownProvider": {
+    "message": "Unknown sync provider"
+  },
+  "securityNotSet": {
+    "message": "No security question set"
+  },
+  "securityAnswerWrong": {
+    "message": "Wrong security answer"
+  },
+  "profileDefaultName": {
+    "message": "New profile"
+  },
+  "colMatch": {
+    "message": "Match mode"
+  },
+  "colType": {
+    "message": "Type"
+  },
+  "colReason": {
+    "message": "Reason"
+  },
+  "syncBucket": {
+    "message": "Bucket"
+  }
+}

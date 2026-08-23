@@ -4,6 +4,7 @@ import { send } from '@/utils/messaging';
 import { findBlockRule, findWhitelistRule } from '@/utils/rules';
 import { getActiveProfile } from '@/utils/storage';
 import { formatRemaining, pomodoroRemainingSec } from '@/utils/time';
+import { t } from '@/utils/i18n';
 import type { AppState, BlockType } from '@/utils/types';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -23,13 +24,14 @@ async function refresh() {
   applyTheme();
   $<HTMLInputElement>('lock-toggle').checked = state.lockEnabled;
   $('block-count').textContent = String(getActiveProfile(state).blockList.length);
+  $('block-heading').textContent = t('popupBlockedCount', [getActiveProfile(state).blockList.length]);
   $<HTMLInputElement>('wl-mode-toggle').checked = getActiveProfile(state).settings.whitelistMode;
 
   // 当前站点
   tabInfo = await send({ type: 'get-tab-info' });
   const host = tabInfo.host;
   if (host) {
-    $('current-host').textContent = `当前网站：${host}`;
+    $('current-host').textContent = t('popupCurrentSite', [host]);
     const profile = getActiveProfile(state);
     const url = tabInfo.url ?? `https://${host}`;
     const rule = findBlockRule(url, host, profile.blockList);
@@ -39,13 +41,13 @@ async function refresh() {
     if (rule) ($('btn-unblock') as HTMLElement).dataset.ruleId = rule.id;
     if (isWhitelisted) {
       $<HTMLButtonElement>('btn-whitelist').disabled = true;
-      $<HTMLButtonElement>('btn-whitelist').textContent = '已在白名单';
+      $<HTMLButtonElement>('btn-whitelist').textContent = t('popupInWhitelist');
     } else {
       $<HTMLButtonElement>('btn-whitelist').disabled = false;
-      $<HTMLButtonElement>('btn-whitelist').textContent = '加入白名单';
+      $<HTMLButtonElement>('btn-whitelist').textContent = t('popupWhitelist');
     }
   } else {
-    $('current-host').textContent = '当前网站：无法识别';
+    $('current-host').textContent = t('popupUnknownSite');
     $('btn-unblock').classList.add('hidden');
     $<HTMLButtonElement>('btn-whitelist').disabled = true;
   }
@@ -57,10 +59,10 @@ async function refresh() {
   if (profile.blockList.length === 0) {
     const li = document.createElement('li');
     li.className = 'empty';
-    li.textContent = '还没有拦截任何网站';
+    li.textContent = t('popupEmptyBlock');
     ul.appendChild(li);
   } else {
-    const TYPE: Record<string, string> = { permanent: '永久', timewise: '计时', attemptwise: '按次', schedule: '排程' };
+    const TYPE: Record<string, string> = { permanent: t('btypePermanent'), timewise: t('btypeTimewise'), attemptwise: t('btypeAttemptwise'), schedule: t('btypeSchedule') };
     for (const rule of profile.blockList.slice(0, 20)) {
       const li = document.createElement('li');
       const left = document.createElement('div');
@@ -91,8 +93,8 @@ async function refresh() {
 
 function renderPomodoro() {
   const p = state.pomodoro;
-  const STATUS: Record<string, string> = { idle: '🍅 番茄钟', focus: '🔥 专注中', break: '☕ 休息中', paused: '⏸ 已暂停' };
-  $('pomo-status').textContent = STATUS[p.status] ?? '🍅 番茄钟';
+  const STATUS: Record<string, string> = { idle: t('popupPomodoro'), focus: t('pomodoroStatusFocus'), break: t('pomodoroStatusBreak'), paused: t('pomodoroStatusPaused') };
+  $('pomo-status').textContent = STATUS[p.status] ?? t('popupPomodoro');
   const sec = pomodoroRemainingSec(p);
   $('pomo-time').textContent = sec >= 0 ? formatRemaining(sec * 1000) : `${p.focusMinutes}:00`;
   $('pomo-start').classList.toggle('hidden', p.status !== 'idle');
@@ -107,7 +109,7 @@ $('lock-toggle').addEventListener('change', async (e) => {
   const res = await send({ type: 'set-lock-enabled', payload: { enabled } });
   if (!res.ok && res.remainingMs != null) {
     $<HTMLInputElement>('lock-toggle').checked = false;
-    $('current-host').textContent = `冷却中，${Math.ceil(res.remainingMs / 60000)} 分钟后可开启`;
+    $('current-host').textContent = t('popupCooldown', [Math.ceil(res.remainingMs / 60000)]);
   }
   refresh();
 });

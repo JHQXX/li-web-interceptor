@@ -3,18 +3,20 @@ import { defineConfig } from 'wxt';
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   manifest: {
-    name: 'LI 网站拦截器',
-    description: '拦截指定网站：匹配模式、拦截类型、白名单、关键词、档案、番茄钟、统计、同步预留。',
+    default_locale: 'zh_CN',
+    name: '__MSG_appName__',
+    description: '__MSG_appDesc__',
     permissions: ['webNavigation', 'storage', 'contextMenus', 'activeTab', 'alarms', 'notifications'],
+    host_permissions: ['https://*/*', 'http://*/*'],
     omnibox: { keyword: 'bl' },
     commands: {
       'toggle-lock': {
         suggested_key: { default: 'Ctrl+Shift+L' },
-        description: '开关网站拦截',
+        description: '__MSG_cmdToggleLock__',
       },
       'block-tab': {
         suggested_key: { default: 'Ctrl+Shift+B' },
-        description: '拦截当前网站',
+        description: '__MSG_cmdBlockTab__',
       },
     },
   },
