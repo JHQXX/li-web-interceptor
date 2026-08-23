@@ -832,5 +832,53 @@
   },
   "blExt": {
     "message": "衍生扩展："
+  },
+  "helpMatchTitle": {
+    "message": "匹配模式示例"
+  },
+  "helpDomain": {
+    "message": "只拦该域名本身；勾选「子域 / TLD变体 / 镜像」后扩展到相关站点"
+  },
+  "helpContain": {
+    "message": "URL 任意位置包含该关键字即命中，如输入 shop 可拦任意含 shop 的网址"
+  },
+  "helpExact": {
+    "message": "仅当主机名与域名完全一致时命中（www 视为相同），如 example.com 不匹配 a.example.com"
+  },
+  "helpPattern": {
+    "message": "用 * 匹配任意字符，如 https://shop.com/*/checkout/ 会命中该站所有结算页"
+  },
+  "helpFull": {
+    "message": "仅当完整网址完全一致时命中，适合精确屏蔽某个页面"
+  },
+  "helpTypeTitle": {
+    "message": "拦截类型示例"
+  },
+  "helpTypePermanent": {
+    "message": "一直拦截，直到手动关闭/移除"
+  },
+  "helpTypeTimewise": {
+    "message": "拦截 N 分钟（如 30）后自动放行，适合「暂时不去」"
+  },
+  "helpTypeAttemptwise": {
+    "message": "今日访问满 N 次后开始拦截，适合「偶尔看看但别沉迷」"
+  },
+  "helpTypeSchedule": {
+    "message": "仅在设定的星期/时段内拦截，其余时间可访问"
+  },
+  "helpWlTypeTitle": {
+    "message": "白名单类型示例"
+  },
+  "helpWlTypePermanent": {
+    "message": "始终放行，不受拦截规则影响"
+  },
+  "helpWlTypeAttemptwise": {
+    "message": "每日放行 N 次，用完后按拦截规则处理"
+  },
+  "helpWlTypeSchedule": {
+    "message": "仅在该时段放行，其余时间按拦截规则处理"
+  },
+  "kwExample": {
+    "message": "示例：输入「shop」并开启关键词拦截，所有网址含 shop 的页面都会被拦截。"
   }
 }

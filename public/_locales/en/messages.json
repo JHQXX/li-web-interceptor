@@ -832,5 +832,53 @@
   },
   "blExt": {
     "message": "Derivatives: "
+  },
+  "helpMatchTitle": {
+    "message": "Match mode examples"
+  },
+  "helpDomain": {
+    "message": "Blocks only that domain itself; checking “Subdomains / TLD variants / Mirrors” expands to related sites"
+  },
+  "helpContain": {
+    "message": "Matches any URL that contains the keyword anywhere, e.g. shop blocks any URL containing shop"
+  },
+  "helpExact": {
+    "message": "Matches only when the host equals the domain exactly (www treated as same), e.g. example.com does not match a.example.com"
+  },
+  "helpPattern": {
+    "message": "Use * for any characters, e.g. https://shop.com/*/checkout/ matches all checkout pages"
+  },
+  "helpFull": {
+    "message": "Matches only when the full URL is identical, useful to block one exact page"
+  },
+  "helpTypeTitle": {
+    "message": "Block type examples"
+  },
+  "helpTypePermanent": {
+    "message": "Always blocked until you disable/remove it"
+  },
+  "helpTypeTimewise": {
+    "message": "Blocked for N minutes (e.g. 30) then auto-unblocks — for “stay away for now”"
+  },
+  "helpTypeAttemptwise": {
+    "message": "Blocked after N visits today — for “occasional but not addicted”"
+  },
+  "helpTypeSchedule": {
+    "message": "Blocked only during the configured days/times, accessible otherwise"
+  },
+  "helpWlTypeTitle": {
+    "message": "Whitelist type examples"
+  },
+  "helpWlTypePermanent": {
+    "message": "Always allowed, unaffected by block rules"
+  },
+  "helpWlTypeAttemptwise": {
+    "message": "Allowed N times per day, then block rules apply"
+  },
+  "helpWlTypeSchedule": {
+    "message": "Allowed only during this window, otherwise block rules apply"
+  },
+  "kwExample": {
+    "message": "Example: enter “shop” and enable keyword blocking — every URL containing shop will be blocked."
   }
 }

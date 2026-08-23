@@ -248,3 +248,20 @@ input:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .ext-checks { gap: 12px; }
 .ext-checks input { accent-color: var(--accent); }
+
+/* ---------- 举例说明 ---------- */
+.help-examples {
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text);
+}
+.help-title { font-weight: 600; color: var(--accent); margin: 8px 0 6px; }
+.help-title:first-child { margin-top: 0; }
+.help-examples ul { list-style: none; padding: 0; }
+.help-examples li { padding: 3px 0; line-height: 1.6; }
+.help-examples b { color: var(--text-strong); }
+.tip.example { color: var(--accent); }

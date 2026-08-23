@@ -77,8 +77,25 @@
             <label>__MSG_blRedirectOptional__ <input id="bl-redirect" type="text" placeholder="https://…" class="wide" /></label>
           </div>
         </div>
+        <div class="help-examples">
+          <div class="help-title">__MSG_helpMatchTitle__</div>
+          <ul>
+            <li><b>__MSG_matchDomain__</b>：__MSG_helpDomain__</li>
+            <li><b>__MSG_matchContain__</b>：__MSG_helpContain__</li>
+            <li><b>__MSG_matchExact__</b>：__MSG_helpExact__</li>
+            <li><b>__MSG_matchPattern__</b>：__MSG_helpPattern__</li>
+            <li><b>__MSG_matchFull__</b>：__MSG_helpFull__</li>
+          </ul>
+          <div class="help-title">__MSG_helpTypeTitle__</div>
+          <ul>
+            <li><b>__MSG_btypePermanent__</b>：__MSG_helpTypePermanent__</li>
+            <li><b>__MSG_btypeTimewise__</b>：__MSG_helpTypeTimewise__</li>
+            <li><b>__MSG_btypeAttemptwise__</b>：__MSG_helpTypeAttemptwise__</li>
+            <li><b>__MSG_btypeSchedule__</b>：__MSG_helpTypeSchedule__</li>
+          </ul>
+        </div>
         <div class="toolbar">
-          <input id="block-search" type="text" placeholder="搜索__MSG_navBlockList__…" class="search" />
+          <input id="block-search" type="text" placeholder="__MSG_blSearchPlaceholder__" class="search" />
           <span class="templates">__MSG_blTemplate__：
             <button data-tpl="video" class="tpl">__MSG_tplVideo__</button>
             <button data-tpl="social" class="tpl">__MSG_tplSocial__</button>
@@ -127,8 +144,24 @@
             </span>
           </div>
         </div>
+        <div class="help-examples">
+          <div class="help-title">__MSG_helpMatchTitle__</div>
+          <ul>
+            <li><b>__MSG_matchDomain__</b>：__MSG_helpDomain__</li>
+            <li><b>__MSG_matchContain__</b>：__MSG_helpContain__</li>
+            <li><b>__MSG_matchExact__</b>：__MSG_helpExact__</li>
+            <li><b>__MSG_matchPattern__</b>：__MSG_helpPattern__</li>
+            <li><b>__MSG_matchFull__</b>：__MSG_helpFull__</li>
+          </ul>
+          <div class="help-title">__MSG_helpWlTypeTitle__</div>
+          <ul>
+            <li><b>__MSG_wtypePermanent__</b>：__MSG_helpWlTypePermanent__</li>
+            <li><b>__MSG_wtypeAttemptwise__</b>：__MSG_helpWlTypeAttemptwise__</li>
+            <li><b>__MSG_wtypeSchedule__</b>：__MSG_helpWlTypeSchedule__</li>
+          </ul>
+        </div>
         <div class="toolbar">
-          <input id="wl-search" type="text" placeholder="搜索__MSG_navWhitelist__…" class="search" />
+          <input id="wl-search" type="text" placeholder="__MSG_wlSearchPlaceholder__" class="search" />
         </div>
         <div class="table-wrap">
           <table class="list-table">
@@ -149,6 +182,7 @@
             <label class="switch"><input id="kw-enabled" type="checkbox" /><span class="slider"></span></label>
           </label>
           <p class="tip">__MSG_kwTip__</p>
+          <p class="tip example">__MSG_kwExample__</p>
         </div>
         <ul id="kw-list" class="kw-list"></ul>
       </section>
