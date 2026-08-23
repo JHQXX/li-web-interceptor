@@ -4,7 +4,9 @@ import { getActiveProfile } from '@/utils/storage';
 import { minToClock, parseClockToMin, formatRemaining, pomodoroRemainingSec } from '@/utils/time';
 import { SECURITY_QUESTIONS } from '@/utils/types';
 import { computeTodayStats, actionLabel } from '@/utils/stats';
-import { t, weekdayWithPrefix } from '@/utils/i18n';
+import { t, weekdayWithPrefix , applyI18n } from '@/utils/i18n';
+
+applyI18n();
 import { SITE_TEMPLATES } from '@/utils/templates';
 import type { AppState, BlockRule, BlockType, MatchMode, TimeWindow, WhitelistType } from '@/utils/types';
 

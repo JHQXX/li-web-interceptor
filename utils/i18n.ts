@@ -30,3 +30,30 @@ export function weekdayLabel(day: number): string {
 export function weekdayWithPrefix(day: number): string {
   return t('weekPrefix', [weekdayLabel(day)]);
 }
+
+const MSG_RE = /__MSG_([A-Za-z0-9_]+)__/g;
+
+function replaceIn(text: string): string {
+  return text.replace(MSG_RE, (_, key: string) => t(key));
+}
+
+/**
+ * 运行时把 DOM 中所有 __MSG_key__ 占位符替换为本地化文案（文本节点 + placeholder/title 属性）。
+ * 不依赖 Chrome 对 HTML 的自动替换，兼容性更好。
+ */
+export function applyI18n(root: ParentNode = document): void {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes: Text[] = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+  for (const n of nodes) {
+    if (n.textContent && n.textContent.includes('__MSG_')) {
+      n.textContent = replaceIn(n.textContent);
+    }
+  }
+  root.querySelectorAll<Element>('*').forEach((el) => {
+    for (const attr of ['placeholder', 'title']) {
+      const v = el.getAttribute(attr);
+      if (v && v.includes('__MSG_')) el.setAttribute(attr, replaceIn(v));
+    }
+  });
+}

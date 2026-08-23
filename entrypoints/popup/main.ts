@@ -4,7 +4,9 @@ import { send } from '@/utils/messaging';
 import { findBlockRule, findWhitelistRule } from '@/utils/rules';
 import { getActiveProfile } from '@/utils/storage';
 import { formatRemaining, pomodoroRemainingSec } from '@/utils/time';
-import { t } from '@/utils/i18n';
+import { t , applyI18n } from '@/utils/i18n';
+
+applyI18n();
 import type { AppState, BlockType } from '@/utils/types';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
