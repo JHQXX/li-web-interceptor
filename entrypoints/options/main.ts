@@ -225,45 +225,48 @@ function renderWhitelist() {
 
 // ---------- 关键词 ----------
 function renderKeywords() {
-  const ul = $('kw-list');
-  ul.innerHTML = '';
+  const tbody = $('kw-tbody');
+  tbody.innerHTML = '';
   const profile = getActiveProfile(state);
   if (profile.keywords.length === 0) {
-    const li = document.createElement('li');
-    li.className = 'empty';
-    li.textContent = t('kwEmpty');
-    ul.appendChild(li);
+    tbody.innerHTML = `<tr><td colspan="3" class="empty">${t('kwEmpty')}</td></tr>`;
     return;
   }
   for (const k of profile.keywords) {
-    const li = document.createElement('li');
-    const host = document.createElement('span');
-    host.className = 'hostname';
-    host.textContent = k.keyword;
-    const actions = document.createElement('div');
-    actions.className = 'actions';
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td');
+    const chip = document.createElement('span');
+    chip.className = 'kw-chip';
+    chip.textContent = k.keyword;
+    td1.appendChild(chip);
+
+    const td2 = document.createElement('td');
     const sw = document.createElement('label');
-    sw.className = 'switch-row';
-    sw.style.cssText = 'gap:6px;font-size:12px;';
-    sw.innerHTML = `<input type="checkbox" class="mini-check" ${k.enabled ? 'checked' : ''}/> ${t('enable')}`;
+    sw.className = 'switch';
+    sw.innerHTML = `<input type="checkbox" ${k.enabled ? 'checked' : ''} /><span class="slider"></span>`;
     const swInput = sw.querySelector('input')!;
     swInput.addEventListener('change', async () => {
       await send({ type: 'toggle-keyword', payload: { id: k.id, enabled: swInput.checked } });
       state = await send({ type: 'get-state' }).then((r) => r.state);
     });
+    td2.appendChild(sw);
+
+    const td3 = document.createElement('td');
     const rm = document.createElement('button');
     rm.className = 'rm';
     rm.textContent = '✕';
+    rm.title = t('remove');
     rm.addEventListener('click', async () => {
       await send({ type: 'remove-keyword', payload: { id: k.id } });
       state = await send({ type: 'get-state' }).then((r) => r.state);
       renderKeywords();
     });
-    actions.appendChild(sw);
-    actions.appendChild(rm);
-    li.appendChild(host);
-    li.appendChild(actions);
-    ul.appendChild(li);
+    td3.appendChild(rm);
+
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tr.appendChild(td3);
+    tbody.appendChild(tr);
   }
 }
 

@@ -419,3 +419,14 @@ body {
 /* 统计卡片 hover 上浮 */
 .stat-card { transition: transform 0.12s; }
 .stat-card:hover { transform: translateY(-2px); }
+
+.kw-chip {
+  display: inline-block;
+  background: var(--accent-soft);
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}

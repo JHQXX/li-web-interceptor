@@ -880,5 +880,11 @@
   },
   "kwExample": {
     "message": "示例：输入「shop」并开启关键词拦截，所有网址含 shop 的页面都会被拦截。"
+  },
+  "kwWord": {
+    "message": "关键字"
+  },
+  "kwStatus": {
+    "message": "启用"
   }
 }

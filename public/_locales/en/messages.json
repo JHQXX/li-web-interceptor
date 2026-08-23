@@ -880,5 +880,11 @@
   },
   "kwExample": {
     "message": "Example: enter “shop” and enable keyword blocking — every URL containing shop will be blocked."
+  },
+  "kwWord": {
+    "message": "Keyword"
+  },
+  "kwStatus": {
+    "message": "Enabled"
   }
 }
