@@ -18,8 +18,17 @@ body {
   padding: 40px 20px 60px;
 }
 .wrap { max-width: 880px; margin: 0 auto; text-align: center; }
-.hero .logo { font-size: 64px; display: inline-block; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.12)); }
-.hero h1 { font-size: 34px; color: var(--text-strong); margin: 14px 0 8px; }
+.hero .logo { width: 84px; height: 84px; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.12)); }
+.hero h1 {
+  position: relative;
+  font-size: 34px; color: var(--text-strong); margin: 14px 0 10px;
+  display: inline-block; padding-bottom: 8px;
+}
+.hero h1::after {
+  content: ''; position: absolute; left: 4px; right: 4px; bottom: 0; height: 7px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='10' viewBox='0 0 220 10'%3E%3Cpath d='M2 6 Q 12 2 22 6 T 44 6 T 66 6 T 88 6 T 110 6 T 132 6 T 154 6 T 176 6 T 198 6 T 216 6' fill='none' stroke='%23ff6f3c' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left bottom;
+  background-size: 100% 100%;
+}
 .hero .sub { color: var(--text-muted); font-size: 16px; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 30px 0; }
 .card {
