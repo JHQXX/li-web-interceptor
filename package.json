@@ -2,7 +2,7 @@
   "name": "li-web-interceptor",
   "description": "网站拦截器浏览器扩展：拦截指定网站、白名单、随机密码、定期解锁、衍生网站拦截",
   "private": true,
-  "version": "0.3.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
