@@ -36,3 +36,6 @@ chrome-mv3-dev
 .output
 dist
 dist-*
+
+# 发布令牌（本地敏感文件）
+.github-release-token
