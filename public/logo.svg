@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-  <!-- 手绘盾牌：粗描边 + 双线 + 高光 + 对勾 -->
-  <path d="M64 10 C 40 10 26 20 22 38 L 15 80 C 14 90 22 101 35 107 L 61 121 C 63 122 65 122 67 121 L 93 107 C 106 101 114 90 113 80 L 106 38 C 102 20 88 10 64 10 Z"
-        fill="#ffd9a8" stroke="#5b4a3f" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M64 21 C 46 21 34 29 30 44 L 24 79 C 23 87 30 96 41 101 L 63 112 C 64 113 64 113 65 112 L 87 101 C 98 96 105 87 104 79 L 98 44 C 94 29 82 21 64 21 Z"
-        fill="#ff6f3c" stroke="#5b4a3f" stroke-width="4" stroke-linejoin="round"/>
-  <ellipse cx="44" cy="43" rx="11" ry="7" fill="#ffd9a8" opacity="0.95" transform="rotate(-18 44 43)"/>
-  <path d="M 38 66 L 54 82 L 90 46" fill="none" stroke="#fffdf7" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- 手绘盾牌：橙底 + 粗深描边 + 白色对勾 + 高光，高对比，透明背景 -->
+  <path d="M64 9 C 40 9 25 20 21 38 L 14 81 C 13 91 22 102 36 108 L 62 122 C 63 123 65 123 67 122 L 92 108 C 106 102 115 91 114 81 L 107 38 C 103 20 88 9 64 9 Z"
+        fill="#ff6f3c" stroke="#3e2f28" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M64 18 C 45 18 33 26 29 42 L 23 79 C 22 87 29 96 40 101 L 63 113 C 64 114 64 114 65 113 L 88 101 C 99 96 106 87 105 79 L 99 42 C 95 26 83 18 64 18 Z"
+        fill="none" stroke="#fffdf7" stroke-width="3" stroke-linejoin="round"/>
+  <ellipse cx="43" cy="44" rx="12" ry="7" fill="#fffdf7" opacity="0.55" transform="rotate(-18 43 44)"/>
+  <path d="M 38 66 L 54 82 L 90 46" fill="none" stroke="#fffdf7" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
