@@ -191,3 +191,5 @@ footer a { color: var(--text-faint); }
 .btn { transition: transform 0.06s, background 0.15s, box-shadow 0.15s; }
 .btn:hover { opacity: 1; transform: translateY(-1px); }
 .btn:active { transform: translateY(3px); }
+
+html.pre-i18n { visibility: hidden; }

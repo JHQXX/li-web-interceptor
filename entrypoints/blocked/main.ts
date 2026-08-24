@@ -7,8 +7,7 @@ import { formatRemaining } from '@/utils/time';
 import { t , applyI18n, applyI18nWhenReady, setLang } from '@/utils/i18n';
 import { applyTheme } from '@/utils/theme';
 
-applyI18n();
-applyI18nWhenReady();
+document.documentElement.classList.add('pre-i18n');
 import type { AppState, BlockRule } from '@/utils/types';
 
 const params = new URLSearchParams(location.search);
@@ -19,6 +18,9 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
 setLang(state.lang);
+applyI18n();
+applyI18nWhenReady();
+document.documentElement.classList.remove('pre-i18n');
 let currentRule: BlockRule | undefined;
 
 let cleanupTheme: (() => void) | undefined;

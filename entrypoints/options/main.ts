@@ -7,8 +7,7 @@ import { computeTodayStats, actionLabel } from '@/utils/stats';
 import { t, weekdayWithPrefix , applyI18n, applyI18nWhenReady, setLang } from '@/utils/i18n';
 import { applyTheme } from '@/utils/theme';
 
-applyI18n();
-applyI18nWhenReady();
+document.documentElement.classList.add('pre-i18n');
 import { SITE_TEMPLATES } from '@/utils/templates';
 import type { AppState, BlockRule, BlockType, MatchMode, TimeWindow, WhitelistType } from '@/utils/types';
 
@@ -16,6 +15,9 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
 setLang(state.lang);
+applyI18n();
+applyI18nWhenReady();
+document.documentElement.classList.remove('pre-i18n');
 refreshLabels();
 let pomoTimer: ReturnType<typeof setInterval> | undefined;
 let blockQuery = '';
@@ -33,14 +35,19 @@ function refreshLabels() {
 }
 
 // ---------- Tab 切换 ----------
+function activateTab(tab: string) {
+  document.querySelectorAll('.tabs-nav li').forEach((x) => x.classList.remove('tab-active'));
+  const li = document.querySelector<HTMLLIElement>(`.tabs-nav li[data-tab="${tab}"]`);
+  if (li) li.classList.add('tab-active');
+  document.querySelectorAll('.tab-panel').forEach((p) => {
+    (p as HTMLElement).classList.toggle('hidden', p.id !== `tab-${tab}`);
+  });
+}
+
 document.querySelectorAll<HTMLLIElement>('.tabs-nav li').forEach((li) => {
   li.addEventListener('click', () => {
-    document.querySelectorAll('.tabs-nav li').forEach((x) => x.classList.remove('tab-active'));
-    li.classList.add('tab-active');
-    const tab = li.dataset.tab!;
-    document.querySelectorAll('.tab-panel').forEach((p) => {
-      (p as HTMLElement).classList.toggle('hidden', p.id !== `tab-${tab}`);
-    });
+    activateTab(li.dataset.tab!);
+    sessionStorage.setItem('liwi_tab', li.dataset.tab!);
   });
 });
 
@@ -61,8 +68,10 @@ function refresh() {
   $<HTMLInputElement>('silent-mode').checked = s.silentMode;
   $<HTMLInputElement>('kw-enabled').checked = s.keywordBlockingEnabled;
   $<HTMLInputElement>('history-enabled').checked = state.historyEnabled;
-  $<HTMLSelectElement>('theme-mode').value = state.theme;
-  $<HTMLSelectElement>('lang-mode').value = state.lang;
+  const tm = $<HTMLSelectElement>('theme-mode');
+  tm.value = ['auto', 'light', 'dark'].includes(state.theme) ? state.theme : 'auto';
+  const lm = $<HTMLSelectElement>('lang-mode');
+  lm.value = ['auto', 'zh', 'en'].includes(state.lang) ? state.lang : 'auto';
   $<HTMLSelectElement>('cooldown-min').value = String(state.cooldownMinutes);
   $<HTMLInputElement>('bp-title').value = s.blockPage.title;
   $<HTMLInputElement>('bp-message').value = s.blockPage.message;
@@ -610,9 +619,11 @@ $<HTMLSelectElement>('theme-mode').addEventListener('change', async () => {
   refresh();
 });
 
-// 语言切换：保存后重载页面以应用新语言
+// 语言切换：保存后重载页面以应用新语言（并恢复当前 Tab）
 $<HTMLSelectElement>('lang-mode').addEventListener('change', async () => {
   const lang = $<HTMLSelectElement>('lang-mode').value as 'auto' | 'zh' | 'en';
+  const active = document.querySelector<HTMLLIElement>('.tabs-nav li.tab-active')?.dataset.tab ?? 'block';
+  sessionStorage.setItem('liwi_tab', active);
   await send({ type: 'set-lang', payload: { lang } });
   location.reload();
 });
@@ -832,6 +843,8 @@ function flashMsg(text: string, isError = false) {
 syncBlockParams();
 syncWlParams();
 refresh();
+const savedTab = sessionStorage.getItem('liwi_tab');
+if (savedTab) activateTab(savedTab);
 pomoTimer = setInterval(async () => {
   const r = await send({ type: 'pomodoro-get' });
   state.pomodoro = r.state;

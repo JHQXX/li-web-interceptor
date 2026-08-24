@@ -7,14 +7,16 @@ import { formatRemaining, pomodoroRemainingSec } from '@/utils/time';
 import { t , applyI18n, applyI18nWhenReady, setLang } from '@/utils/i18n';
 import { applyTheme } from '@/utils/theme';
 
-applyI18n();
-applyI18nWhenReady();
+document.documentElement.classList.add('pre-i18n');
 import type { AppState, BlockType } from '@/utils/types';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
 setLang(state.lang);
+applyI18n();
+applyI18nWhenReady();
+document.documentElement.classList.remove('pre-i18n');
 let tabInfo: { url: string | null; host: string | null; tabId?: number } = { url: null, host: null };
 let pomoTimer: ReturnType<typeof setInterval> | undefined;
 

@@ -430,3 +430,5 @@ body {
   font-size: 14px;
   font-weight: 600;
 }
+
+html.pre-i18n { visibility: hidden; }

@@ -187,3 +187,5 @@ body { background-image: radial-gradient(color-mix(in srgb, var(--accent) 10%, t
 .list li { transition: background 0.15s; }
 .list li:hover { background: var(--accent-soft); }
 .list .rm:hover { background: var(--danger-soft); }
+
+html.pre-i18n { visibility: hidden; }
