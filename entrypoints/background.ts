@@ -119,16 +119,16 @@ async function notify(title: string, message: string) {
 
 // ---------------------------------------------------------------- 判定流程
 
-async function processUrl(url: string, tabId: number) {
+async function processUrl(url: string, tabId: number, force = false) {
   if (!/^https?:/i.test(url)) return;
   const host = getHostname(url);
   if (!host) return;
 
   let state = await loadState();
   state = resetAttemptCountersIfNewDay(pruneState(state));
-  if (!state.lockEnabled) return;
-  // 临时暂停（防打扰）：到期前放行所有网站
-  if (state.pauseUntil != null && state.pauseUntil > Date.now()) return;
+  // force：用户显式“拦截本站”（弹窗/右键/OmniBox）时，无视全局开关与暂停，立即生效
+  if (!state.lockEnabled && !force) return;
+  if (state.pauseUntil != null && state.pauseUntil > Date.now() && !force) return;
 
   const profile = getActiveProfile(state);
   const decision = decide(url, host, {
@@ -294,7 +294,7 @@ async function handleContextMenuClick(info: {
   });
   if (info.tabId != null) {
     try {
-      await processUrl(url, info.tabId);
+      await processUrl(url, info.tabId, true);
     } catch {
       // 忽略
     }
@@ -360,7 +360,7 @@ async function addBlockForHost(host: string) {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (tab?.url && tab.id != null) {
     try {
-      await processUrl(tab.url, tab.id);
+      await processUrl(tab.url, tab.id, true);
     } catch {
       // 忽略
     }
@@ -495,7 +495,7 @@ async function handleMessage(message: Message) {
       rule = rule ?? getActiveProfile(state).blockList.find((r) => r.text === payload.text.trim())!;
       if (tabId != null && url) {
         try {
-          await processUrl(url, tabId);
+          await processUrl(url, tabId, true);
         } catch {
           // 忽略
         }
