@@ -15,6 +15,7 @@ export interface SyncSnapshot {
     lockEnabled: boolean;
     cooldownMinutes: number;
     theme: AppState['theme'];
+    lang: AppState['lang'];
     historyEnabled: boolean;
   };
 }
@@ -30,6 +31,7 @@ export function buildSnapshot(state: AppState): SyncSnapshot {
       lockEnabled: state.lockEnabled,
       cooldownMinutes: state.cooldownMinutes,
       theme: state.theme,
+      lang: state.lang,
       historyEnabled: state.historyEnabled,
     },
   };
@@ -56,6 +58,7 @@ export function applySnapshot(state: AppState, snap: SyncSnapshot): AppState {
     lockEnabled: snap.data.lockEnabled,
     cooldownMinutes: snap.data.cooldownMinutes,
     theme: snap.data.theme,
+    lang: snap.data.lang,
     historyEnabled: snap.data.historyEnabled,
   };
 }

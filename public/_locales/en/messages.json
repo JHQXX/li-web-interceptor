@@ -886,5 +886,29 @@
   },
   "kwStatus": {
     "message": "Enabled"
+  },
+  "themeMode": {
+    "message": "Theme"
+  },
+  "themeAuto": {
+    "message": "Follow system"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark2": {
+    "message": "Dark"
+  },
+  "langMode": {
+    "message": "Language"
+  },
+  "langAuto": {
+    "message": "Follow system"
+  },
+  "langZh": {
+    "message": "简体中文"
+  },
+  "langEn": {
+    "message": "English"
   }
 }

@@ -792,6 +792,10 @@ async function handleMessage(message: Message) {
       await updateState((s) => ({ ...s, theme: message.payload.theme }));
       return { ok: true } as const;
     }
+    case 'set-lang': {
+      await updateState((s) => ({ ...s, lang: message.payload.lang }));
+      return { ok: true } as const;
+    }
     case 'set-sync-config': {
       await setSyncConfig(message.payload);
       return { ok: true } as const;

@@ -886,5 +886,29 @@
   },
   "kwStatus": {
     "message": "启用"
+  },
+  "themeMode": {
+    "message": "主题"
+  },
+  "themeAuto": {
+    "message": "跟随系统"
+  },
+  "themeLight": {
+    "message": "浅色"
+  },
+  "themeDark2": {
+    "message": "深色"
+  },
+  "langMode": {
+    "message": "语言"
+  },
+  "langAuto": {
+    "message": "跟随系统"
+  },
+  "langZh": {
+    "message": "简体中文"
+  },
+  "langEn": {
+    "message": "English"
   }
 }

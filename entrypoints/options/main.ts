@@ -4,7 +4,8 @@ import { getActiveProfile } from '@/utils/storage';
 import { minToClock, parseClockToMin, formatRemaining, pomodoroRemainingSec } from '@/utils/time';
 import { SECURITY_QUESTIONS } from '@/utils/types';
 import { computeTodayStats, actionLabel } from '@/utils/stats';
-import { t, weekdayWithPrefix , applyI18n, applyI18nWhenReady } from '@/utils/i18n';
+import { t, weekdayWithPrefix , applyI18n, applyI18nWhenReady, setLang } from '@/utils/i18n';
+import { applyTheme } from '@/utils/theme';
 
 applyI18n();
 applyI18nWhenReady();
@@ -14,15 +15,22 @@ import type { AppState, BlockRule, BlockType, MatchMode, TimeWindow, WhitelistTy
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
+setLang(state.lang);
+refreshLabels();
 let pomoTimer: ReturnType<typeof setInterval> | undefined;
 let blockQuery = '';
 let wlQuery = '';
 let historyQuery = '';
 let historyFilter = 'all';
 
-const MODE_LABEL: Record<string, string> = { domain: t('matchDomain'), contain: t('matchContain'), exact: t('matchExact'), pattern: t('matchPattern'), full: t('matchFull') };
-const BTYPE_LABEL: Record<string, string> = { permanent: t('btypePermanent'), timewise: t('btypeTimewise'), attemptwise: t('btypeAttemptwise'), schedule: t('btypeSchedule') };
-const WTYPE_LABEL: Record<string, string> = { permanent: t('wtypePermanent'), attemptwise: t('wtypeAttemptwise'), schedule: t('wtypeSchedule') };
+let MODE_LABEL: Record<string, string> = {};
+let BTYPE_LABEL: Record<string, string> = {};
+let WTYPE_LABEL: Record<string, string> = {};
+function refreshLabels() {
+  MODE_LABEL = { domain: t('matchDomain'), contain: t('matchContain'), exact: t('matchExact'), pattern: t('matchPattern'), full: t('matchFull') };
+  BTYPE_LABEL = { permanent: t('btypePermanent'), timewise: t('btypeTimewise'), attemptwise: t('btypeAttemptwise'), schedule: t('btypeSchedule') };
+  WTYPE_LABEL = { permanent: t('wtypePermanent'), attemptwise: t('wtypeAttemptwise'), schedule: t('wtypeSchedule') };
+}
 
 // ---------- Tab 切换 ----------
 document.querySelectorAll<HTMLLIElement>('.tabs-nav li').forEach((li) => {
@@ -37,12 +45,14 @@ document.querySelectorAll<HTMLLIElement>('.tabs-nav li').forEach((li) => {
 });
 
 // ---------- 主题 ----------
-function applyTheme() {
-  document.documentElement.dataset.theme = state.theme;
+let cleanupTheme: (() => void) | undefined;
+function applyThemeSetting() {
+  cleanupTheme?.();
+  cleanupTheme = applyTheme(state.theme);
 }
 
 function refresh() {
-  applyTheme();
+  applyThemeSetting();
   $<HTMLInputElement>('lock-toggle').checked = state.lockEnabled;
   $('profile-badge').textContent = t('profileCurrent', [getActiveProfile(state).name]);
   const profile = getActiveProfile(state);
@@ -51,7 +61,8 @@ function refresh() {
   $<HTMLInputElement>('silent-mode').checked = s.silentMode;
   $<HTMLInputElement>('kw-enabled').checked = s.keywordBlockingEnabled;
   $<HTMLInputElement>('history-enabled').checked = state.historyEnabled;
-  $<HTMLInputElement>('theme-dark').checked = state.theme === 'dark';
+  $<HTMLSelectElement>('theme-mode').value = state.theme;
+  $<HTMLSelectElement>('lang-mode').value = state.lang;
   $<HTMLSelectElement>('cooldown-min').value = String(state.cooldownMinutes);
   $<HTMLInputElement>('bp-title').value = s.blockPage.title;
   $<HTMLInputElement>('bp-message').value = s.blockPage.message;
@@ -592,10 +603,18 @@ $('silent-mode').addEventListener('change', async (e) => {
   await send({ type: 'set-silent-mode', payload: { enabled: (e.target as HTMLInputElement).checked } });
   state = await send({ type: 'get-state' }).then((r) => r.state);
 });
-$('theme-dark').addEventListener('change', async (e) => {
-  await send({ type: 'set-theme', payload: { theme: (e.target as HTMLInputElement).checked ? 'dark' : 'light' } });
+$<HTMLSelectElement>('theme-mode').addEventListener('change', async () => {
+  const theme = $<HTMLSelectElement>('theme-mode').value as 'auto' | 'light' | 'dark';
+  await send({ type: 'set-theme', payload: { theme } });
   state = await send({ type: 'get-state' }).then((r) => r.state);
   refresh();
+});
+
+// 语言切换：保存后重载页面以应用新语言
+$<HTMLSelectElement>('lang-mode').addEventListener('change', async () => {
+  const lang = $<HTMLSelectElement>('lang-mode').value as 'auto' | 'zh' | 'en';
+  await send({ type: 'set-lang', payload: { lang } });
+  location.reload();
 });
 $('cooldown-min').addEventListener('change', async () => {
   await send({ type: 'set-cooldown', payload: { minutes: Number($<HTMLSelectElement>('cooldown-min').value) } });

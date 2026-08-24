@@ -292,5 +292,15 @@
   "helpWlTypePermanent": "始终放行，不受拦截规则影响",
   "helpWlTypeAttemptwise": "每日放行 N 次，用完后按拦截规则处理",
   "helpWlTypeSchedule": "仅在该时段放行，其余时间按拦截规则处理",
-  "kwExample": "示例：输入「shop」并开启关键词拦截，所有网址含 shop 的页面都会被拦截。"
+  "kwExample": "示例：输入「shop」并开启关键词拦截，所有网址含 shop 的页面都会被拦截。",
+  "kwWord": "关键字",
+  "kwStatus": "启用",
+  "themeMode": "主题",
+  "themeAuto": "跟随系统",
+  "themeLight": "浅色",
+  "themeDark2": "深色",
+  "langMode": "语言",
+  "langAuto": "跟随系统",
+  "langZh": "简体中文",
+  "langEn": "English"
 }

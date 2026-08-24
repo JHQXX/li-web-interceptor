@@ -4,7 +4,8 @@ import { send } from '@/utils/messaging';
 import { findBlockRule, findWhitelistRule } from '@/utils/rules';
 import { getActiveProfile } from '@/utils/storage';
 import { formatRemaining, pomodoroRemainingSec } from '@/utils/time';
-import { t , applyI18n, applyI18nWhenReady } from '@/utils/i18n';
+import { t , applyI18n, applyI18nWhenReady, setLang } from '@/utils/i18n';
+import { applyTheme } from '@/utils/theme';
 
 applyI18n();
 applyI18nWhenReady();
@@ -13,18 +14,21 @@ import type { AppState, BlockType } from '@/utils/types';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
+setLang(state.lang);
 let tabInfo: { url: string | null; host: string | null; tabId?: number } = { url: null, host: null };
 let pomoTimer: ReturnType<typeof setInterval> | undefined;
 
-function applyTheme() {
-  document.documentElement.dataset.theme = state.theme;
-  $('btn-theme').textContent = state.theme === 'dark' ? '☀️' : '🌙';
+let cleanupTheme: (() => void) | undefined;
+function applyThemeSetting() {
+  cleanupTheme?.();
+  cleanupTheme = applyTheme(state.theme);
+  $('btn-theme').textContent = state.theme === 'dark' ? '☀️' : state.theme === 'auto' ? '🌗' : '🌙';
 }
 
 async function refresh() {
   const r = await send({ type: 'get-state' });
   state = r.state;
-  applyTheme();
+  applyThemeSetting();
   $<HTMLInputElement>('lock-toggle').checked = state.lockEnabled;
   $('block-count').textContent = String(getActiveProfile(state).blockList.length);
   $('block-heading').textContent = t('popupBlockedCount', [getActiveProfile(state).blockList.length]);
@@ -117,7 +121,10 @@ $('lock-toggle').addEventListener('change', async (e) => {
   refresh();
 });
 $('btn-theme').addEventListener('click', async () => {
-  await send({ type: 'set-theme', payload: { theme: state.theme === 'dark' ? 'light' : 'dark' } });
+  const order = ['auto', 'light', 'dark'] as const;
+  const idx = order.indexOf(state.theme as (typeof order)[number]);
+  const next = order[(idx + 1) % order.length] ?? 'auto';
+  await send({ type: 'set-theme', payload: { theme: next } });
   refresh();
 });
 $('wl-mode-toggle').addEventListener('change', async (e) => {

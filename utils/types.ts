@@ -10,7 +10,9 @@ export type MatchMode = 'domain' | 'contain' | 'exact' | 'pattern' | 'full';
 export type BlockType = 'permanent' | 'timewise' | 'attemptwise' | 'schedule';
 /** 白名单类型 */
 export type WhitelistType = 'permanent' | 'attemptwise' | 'schedule';
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'auto';
+/** 语言：auto=跟随浏览器 / zh / en */
+export type Lang = 'auto' | 'zh' | 'en';
 export type RuleStatus = 'blocked' | 'unblocked';
 export type AllowStatus = 'allowed' | 'not-allowed';
 
@@ -188,6 +190,7 @@ export interface AppState {
   cooldownMinutes: number;
   cooldownUntil: number | null;
   theme: Theme;
+  lang: Lang;
   historyEnabled: boolean;
   password: PasswordSettings;
   security: SecuritySettings;

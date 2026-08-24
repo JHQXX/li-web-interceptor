@@ -1,13 +1,29 @@
 /**
- * 多语言助手：优先 chrome.i18n，缺失时回退到内置中文词典，保证文案始终可见。
- * 非扩展环境（单测）下同样安全回退为 key。
+ * 多语言助手：
+ * - 内置中/英词典，可用 setLang 强制指定语言（不依赖浏览器 _locales 缓存）
+ * - auto 时回退 chrome.i18n（浏览器语言），再兜底中文
  */
 import { browser } from 'wxt/browser';
 import zhDict from './messages-zh.json';
+import enDict from './messages-en.json';
+import type { Lang } from './types';
 
 const zh = zhDict as unknown as Record<string, string>;
+const en = enDict as unknown as Record<string, string>;
 
-// WXT 生成的 i18n 类型把 key 收窄为 __MSG_*__ 联合，这里放宽以支持任意 key
+let override: Record<string, string> | null = null;
+let currentLang: Lang = 'auto';
+
+/** 指定语言（'auto' 表示跟随浏览器）。调用后 t() 立即生效。 */
+export function setLang(lang: Lang): void {
+  currentLang = lang;
+  override = lang === 'en' ? en : lang === 'zh' ? zh : null;
+}
+
+export function getLang(): Lang {
+  return currentLang;
+}
+
 function rawGetMessage(key: string, subs?: string[]): string {
   const i18n = (browser as unknown as { i18n?: { getMessage(key: string, subs?: string[]): string } }).i18n;
   if (!i18n) return '';
@@ -16,14 +32,17 @@ function rawGetMessage(key: string, subs?: string[]): string {
 
 export function t(key: string, subs?: Array<string | number>): string {
   const s = subs?.map(String);
-  try {
-    const msg = rawGetMessage(key, s);
-    if (msg) return msg;
-  } catch {
-    // 忽略
+  let base = '';
+  if (override && override[key]) {
+    base = override[key];
+  } else {
+    try {
+      base = rawGetMessage(key, s);
+    } catch {
+      // 忽略
+    }
+    if (!base) base = zh[key] ?? key;
   }
-  // 内置中文兜底
-  let base = zh[key] ?? key;
   if (s) {
     s.forEach((v, i) => {
       base = base.split(`$${i + 1}`).join(v);
@@ -49,10 +68,7 @@ function replaceIn(text: string): string {
   return text.replace(MSG_RE, (_, key: string) => t(key));
 }
 
-/**
- * 运行时把 DOM 中所有 __MSG_key__ 占位符替换为本地化文案（文本节点 + placeholder/title 属性）。
- * 不依赖 Chrome 对 HTML 的自动替换，兼容性更好。
- */
+/** 运行时把 DOM 中所有 __MSG_key__ 占位符替换为本地化文案。 */
 export function applyI18n(root: ParentNode = document): void {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const nodes: Text[] = [];
@@ -70,7 +86,7 @@ export function applyI18n(root: ParentNode = document): void {
   });
 }
 
-/** 在 DOMContentLoaded 后再执行一次替换（兜底，防止首次执行过早） */
+/** 在 DOMContentLoaded 后再执行一次替换（兜底） */
 export function applyI18nWhenReady(): void {
   if (document.readyState !== 'loading') {
     applyI18n();

@@ -4,7 +4,8 @@ import { send } from '@/utils/messaging';
 import { decide, findBlockRule } from '@/utils/rules';
 import { getActiveProfile } from '@/utils/storage';
 import { formatRemaining } from '@/utils/time';
-import { t , applyI18n, applyI18nWhenReady } from '@/utils/i18n';
+import { t , applyI18n, applyI18nWhenReady, setLang } from '@/utils/i18n';
+import { applyTheme } from '@/utils/theme';
 
 applyI18n();
 applyI18nWhenReady();
@@ -17,10 +18,13 @@ const site = params.get('site') ?? '';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
 let state: AppState = await send({ type: 'get-state' }).then((r) => r.state);
+setLang(state.lang);
 let currentRule: BlockRule | undefined;
 
-function applyTheme() {
-  document.documentElement.dataset.theme = state.theme;
+let cleanupTheme: (() => void) | undefined;
+function applyThemeSetting() {
+  cleanupTheme?.();
+  cleanupTheme = applyTheme(state.theme);
 }
 
 function decisionNow() {
@@ -230,7 +234,7 @@ $<HTMLInputElement>('sec-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') submitSecurityAnswer();
 });
 
-applyTheme();
+applyThemeSetting();
 render();
 autoClose();
 

@@ -9,6 +9,7 @@ import type {
   BlockType,
   MatchMode,
   PomodoroState,
+  Lang,
   Theme,
   TimeWindow,
   WhitelistRule,
@@ -96,6 +97,7 @@ export type Message =
   | { type: 'pomodoro-stop' }
   | { type: 'pomodoro-get' }
   | { type: 'set-theme'; payload: { theme: Theme } }
+  | { type: 'set-lang'; payload: { lang: Lang } }
   | { type: 'set-sync-config'; payload: SyncConfigPayload }
   | { type: 'sync-test'; payload: { provider: 'webdav' | 's3' } }
   | { type: 'sync-push' }
