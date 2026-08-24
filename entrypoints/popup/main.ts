@@ -97,7 +97,15 @@ async function refresh() {
     }
   }
 
+  renderPause();
   renderPomodoro();
+}
+
+function renderPause() {
+  const paused = state.pauseUntil != null && state.pauseUntil > Date.now();
+  const btn = $<HTMLButtonElement>('btn-pause');
+  btn.textContent = paused ? t('popupPaused') : t('popupPause');
+  btn.classList.toggle('btn-secondary', paused);
 }
 
 function renderPomodoro() {
@@ -162,6 +170,13 @@ $('btn-whitelist').addEventListener('click', async () => {
   const host = tabInfo.host;
   if (!host) return;
   await send({ type: 'add-whitelist', payload: { text: host, matchMode: 'domain', type: 'permanent' } });
+  refresh();
+});
+
+// --- 暂停（防打扰） ---
+$('btn-pause').addEventListener('click', async () => {
+  const paused = state.pauseUntil != null && state.pauseUntil > Date.now();
+  await send({ type: 'set-pause', payload: { minutes: paused ? 0 : 10 } });
   refresh();
 });
 

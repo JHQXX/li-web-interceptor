@@ -61,7 +61,7 @@ describe('v1 → v2 迁移', () => {
       schedules: [{ id: 's1', days: [1, 2], startMin: 540, endMin: 1080, enabled: true }],
     };
     const s = _migrateForTest(v1);
-    expect(s.version).toBe(2);
+    expect(s.version).toBe(3);
     expect(s.lockEnabled).toBe(false);
     const prof = s.profiles[0]!;
     expect(prof.blockList[0]!.matchMode).toBe('domain');
@@ -72,5 +72,36 @@ describe('v1 → v2 迁移', () => {
     const sch = prof.whitelist.find((w) => w.type === 'schedule');
     expect(sch).toBeDefined();
     expect(sch!.schedule).toEqual({ days: [1, 2], startMin: 540, endMin: 1080 });
+  });
+});
+
+describe('v2 → v3 迁移（默认只拦当前域名）', () => {
+  it('重置衍生默认并收窄已有 domain 规则', () => {
+    const v2 = defaultState();
+    v2.version = 2;
+    v2.profiles[0]!.settings.variants = { includeSubdomains: true, includeTldVariants: true, includeKnownMirrors: true };
+    v2.profiles[0]!.blockList.push({
+      id: 'b1', text: 'console.volcengine.com', matchMode: 'domain',
+      domainOptions: { includeSubdomains: true, includeTldVariants: true, includeKnownMirrors: true },
+      patterns: ['console.volcengine.com', '*.console.volcengine.com', 'volcengine.com', '*.volcengine.com', 'volcengine.cn'],
+      blockType: 'permanent', status: 'blocked', reason: '', createdAt: 0,
+    });
+    const next = _migrateForTest(v2);
+    expect(next.version).toBe(3);
+    expect(next.profiles[0]!.settings.variants.includeSubdomains).toBe(false);
+    expect(next.profiles[0]!.settings.variants.includeTldVariants).toBe(false);
+    const rule = next.profiles[0]!.blockList[0]!;
+    expect(rule.patterns).toEqual(['console.volcengine.com']);
+    expect(rule.domainOptions?.includeSubdomains).toBe(false);
+  });
+  it('非 domain 规则不受影响', () => {
+    const v2 = defaultState();
+    v2.version = 2;
+    v2.profiles[0]!.blockList.push({
+      id: 'b2', text: 'shop', matchMode: 'contain', blockType: 'permanent', status: 'blocked', reason: '', createdAt: 0,
+    });
+    const next = _migrateForTest(v2);
+    expect(next.profiles[0]!.blockList[0]!.matchMode).toBe('contain');
+    expect(next.profiles[0]!.blockList[0]!.text).toBe('shop');
   });
 });

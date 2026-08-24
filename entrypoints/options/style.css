@@ -432,3 +432,16 @@ body {
 }
 
 html.pre-i18n { visibility: hidden; }
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+textarea:focus { border-color: var(--accent); }

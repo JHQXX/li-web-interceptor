@@ -910,5 +910,74 @@
   },
   "langEn": {
     "message": "English"
+  },
+  "onboardingTitle": {
+    "message": "欢迎使用 LI 网站拦截器"
+  },
+  "onboardingSub": {
+    "message": "拦截分心网站，专注当下。以下几步带你快速上手。"
+  },
+  "onboardingStart": {
+    "message": "开始使用"
+  },
+  "onboardingSettings": {
+    "message": "打开设置"
+  },
+  "onb1Title": {
+    "message": "拦截网站"
+  },
+  "onb1Desc": {
+    "message": "访问被拦截网站会跳到全屏拦截页；支持永久/计时/按次/排程等多种方式。"
+  },
+  "onb2Title": {
+    "message": "匹配模式"
+  },
+  "onb2Desc": {
+    "message": "域名+衍生、包含关键字、精确域名、通配、全 URL 精确，默认只拦当前域名。"
+  },
+  "onb3Title": {
+    "message": "白名单与密码"
+  },
+  "onb3Desc": {
+    "message": "白名单优先放行；可用随机密码+安全问题保护你的拦截设置。"
+  },
+  "onb4Title": {
+    "message": "档案与番茄钟"
+  },
+  "onb4Desc": {
+    "message": "工作/学习多套档案一键切换，内置番茄钟专注计时。"
+  },
+  "onb5Title": {
+    "message": "同步备份"
+  },
+  "onb5Desc": {
+    "message": "数据可导出 JSON，或同步到你的 WebDAV / S3 存储。"
+  },
+  "onb6Title": {
+    "message": "快捷操作"
+  },
+  "onb6Desc": {
+    "message": "地址栏输入 bl 加拦截、快捷键开关，支持中英双语。"
+  },
+  "blBatch": {
+    "message": "批量添加"
+  },
+  "blBatchPlaceholder": {
+    "message": "每行一个域名，或用逗号/空格分隔"
+  },
+  "blBatchHint": {
+    "message": "批量添加将按「域名+当前衍生勾选 / 永久拦截」逐条创建"
+  },
+  "popupPause": {
+    "message": "暂停 10 分钟"
+  },
+  "popupPaused": {
+    "message": "已暂停 · 点按恢复"
+  },
+  "pauseDone": {
+    "message": "已暂停 $1 分钟"
+  },
+  "pauseClear": {
+    "message": "已恢复拦截"
   }
 }

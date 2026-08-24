@@ -127,6 +127,8 @@ async function processUrl(url: string, tabId: number) {
   let state = await loadState();
   state = resetAttemptCountersIfNewDay(pruneState(state));
   if (!state.lockEnabled) return;
+  // 临时暂停（防打扰）：到期前放行所有网站
+  if (state.pauseUntil != null && state.pauseUntil > Date.now()) return;
 
   const profile = getActiveProfile(state);
   const decision = decide(url, host, {
@@ -607,6 +609,15 @@ async function handleMessage(message: Message) {
       await updateState((s) => updateActiveProfile(s, (p) => ({ ...p, settings: { ...p.settings, silentMode: message.payload.enabled } })));
       return { ok: true } as const;
     }
+    case 'set-pause': {
+      if (message.payload.minutes <= 0) {
+        await updateState((s) => ({ ...s, pauseUntil: null }));
+        return { ok: true } as const;
+      }
+      const minutes = Math.max(1, Math.min(180, message.payload.minutes));
+      await updateState((s) => ({ ...s, pauseUntil: Date.now() + minutes * 60_000 }));
+      return { ok: true } as const;
+    }
     case 'set-lock-enabled': {
       const state = await loadState();
       const next = setLockEnabledState(state, message.payload.enabled);
@@ -879,8 +890,11 @@ function toCsv(rows: string[][]): string {
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener(handleMessage);
   browser.contextMenus.onClicked.addListener(handleContextMenuClick);
-  browser.runtime.onInstalled.addListener(() => {
+  browser.runtime.onInstalled.addListener((details) => {
     setupContextMenus().catch(console.error);
+    if (details.reason === 'install') {
+      browser.tabs.create({ url: browser.runtime.getURL('/onboarding.html') }).catch(() => {});
+    }
   });
   setupContextMenus().catch(console.error);
 

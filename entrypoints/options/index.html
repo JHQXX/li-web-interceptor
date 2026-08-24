@@ -24,16 +24,16 @@
     </header>
 
     <nav class="tabs-nav">
-      <li data-tab="block" class="tab-active"><a href="javascript:void(0)">__MSG_navBlockList__</a></li>
-      <li data-tab="whitelist"><a href="javascript:void(0)">__MSG_navWhitelist__</a></li>
-      <li data-tab="keyword"><a href="javascript:void(0)">__MSG_statsKeyword__</a></li>
-      <li data-tab="history"><a href="javascript:void(0)">__MSG_navHistory__</a></li>
-      <li data-tab="stats"><a href="javascript:void(0)">__MSG_navStats__</a></li>
-      <li data-tab="profile"><a href="javascript:void(0)">__MSG_navProfile__</a></li>
-      <li data-tab="pomodoro"><a href="javascript:void(0)">__MSG_pomodoroTitle__</a></li>
-      <li data-tab="settings"><a href="javascript:void(0)">__MSG_navSettings__</a></li>
-      <li data-tab="data"><a href="javascript:void(0)">__MSG_navData__</a></li>
-      <li data-tab="sync"><a href="javascript:void(0)">__MSG_navSync__</a></li>
+      <li data-tab="block" class="tab-active"><a href="#">__MSG_navBlockList__</a></li>
+      <li data-tab="whitelist"><a href="#">__MSG_navWhitelist__</a></li>
+      <li data-tab="keyword"><a href="#">__MSG_statsKeyword__</a></li>
+      <li data-tab="history"><a href="#">__MSG_navHistory__</a></li>
+      <li data-tab="stats"><a href="#">__MSG_navStats__</a></li>
+      <li data-tab="profile"><a href="#">__MSG_navProfile__</a></li>
+      <li data-tab="pomodoro"><a href="#">__MSG_pomodoroTitle__</a></li>
+      <li data-tab="settings"><a href="#">__MSG_navSettings__</a></li>
+      <li data-tab="data"><a href="#">__MSG_navData__</a></li>
+      <li data-tab="sync"><a href="#">__MSG_navSync__</a></li>
     </nav>
 
     <main class="main-tabs">
@@ -75,6 +75,16 @@
               <label><input id="bl-mirror" type="checkbox" /> __MSG_blMirror__</label>
             </span>
             <label>__MSG_blRedirectOptional__ <input id="bl-redirect" type="text" placeholder="https://…" class="wide" /></label>
+          </div>
+          <div class="add-row" style="margin-top:8px;">
+            <button id="btn-toggle-batch" class="btn btn-ghost btn-small">__MSG_blBatch__</button>
+          </div>
+          <div id="batch-box" class="hidden">
+            <textarea id="bl-batch" rows="4" placeholder="__MSG_blBatchPlaceholder__"></textarea>
+            <div class="row" style="margin-top:8px;">
+              <button id="btn-add-batch" class="btn btn-primary">__MSG_blBatch__</button>
+            </div>
+            <p class="tip" style="margin:8px 0 0;">__MSG_blBatchHint__</p>
           </div>
         </div>
         <div class="help-examples">

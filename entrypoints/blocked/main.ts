@@ -226,7 +226,7 @@ $('btn-pwd-ok').addEventListener('click', () => {
   if (!$('sec-wrap').classList.contains('hidden')) submitSecurityAnswer();
   else submitPassword();
 });
-$('btn-forget').addEventListener('click', showSecurityQuestion);
+$('btn-forget').addEventListener('click', (e) => { e.preventDefault(); showSecurityQuestion(); });
 $('btn-pwd-cancel').addEventListener('click', closeModal);
 $('btn-session').addEventListener('click', sessionUnlockAndGo);
 $('btn-remove').addEventListener('click', removeRuleAndGo);

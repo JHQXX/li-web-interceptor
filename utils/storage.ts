@@ -45,6 +45,7 @@ export function defaultState(): AppState {
     lockEnabled: true,
     cooldownMinutes: 0,
     cooldownUntil: null,
+    pauseUntil: null,
     theme: 'auto',
     lang: 'auto',
     historyEnabled: true,
@@ -225,12 +226,30 @@ function ensureProfile(p: Profile): Profile {
   };
 }
 
+/** v3 默认：衍生扩展默认全关；已有 domain 规则收窄为只拦当前域名 */
+function applyV3Defaults(state: AppState): AppState {
+  const defVariants = defaultState().profiles[0]!.settings.variants;
+  return {
+    ...state,
+    profiles: state.profiles.map((p) => ({
+      ...p,
+      settings: { ...p.settings, variants: { ...defVariants } },
+      blockList: p.blockList.map((r) => {
+        if (r.matchMode !== 'domain') return r;
+        const domainOptions = { includeSubdomains: false, includeTldVariants: false, includeKnownMirrors: false };
+        const text = normalizeHost(r.text);
+        return { ...r, domainOptions, patterns: text ? [text] : [r.text] };
+      }),
+    })),
+  };
+}
+
 function migrate(raw: unknown): AppState {
   const def = defaultState();
   const r = (raw ?? {}) as Record<string, unknown>;
 
   const hasV1 = r.version === 1 || (!Array.isArray(r.profiles) && Array.isArray(r.blockList));
-  if (hasV1) return migrateV1(r);
+  if (hasV1) return applyV3Defaults(migrateV1(r));
 
   const rawProfiles = Array.isArray(r.profiles) ? (r.profiles as Profile[]) : [];
   const profiles = (rawProfiles.length > 0 ? rawProfiles : def.profiles).map(ensureProfile);
@@ -242,7 +261,7 @@ function migrate(raw: unknown): AppState {
   const oldSync = (r.sync ?? {}) as Partial<AppState['sync']>;
   const oldPomodoro = (r.pomodoro ?? {}) as Partial<AppState['pomodoro']>;
 
-  return {
+  const merged: AppState = {
     ...def,
     ...r,
     version: STATE_VERSION,
@@ -256,9 +275,12 @@ function migrate(raw: unknown): AppState {
     lang: r.lang === 'zh' || r.lang === 'en' ? r.lang : 'auto',
     cooldownMinutes: typeof r.cooldownMinutes === 'number' ? r.cooldownMinutes : 0,
     cooldownUntil: typeof r.cooldownUntil === 'number' ? r.cooldownUntil : null,
+    pauseUntil: typeof r.pauseUntil === 'number' ? r.pauseUntil : null,
     attemptResetDay: typeof r.attemptResetDay === 'string' ? r.attemptResetDay : dateKey(),
     pomodoroDay: typeof r.pomodoroDay === 'string' ? r.pomodoroDay : dateKey(),
   };
+  const incomingVersion = typeof r.version === 'number' ? r.version : 1;
+  return incomingVersion < 3 ? applyV3Defaults(merged) : merged;
 }
 
 export async function loadState(): Promise<AppState> {

@@ -910,5 +910,74 @@
   },
   "langEn": {
     "message": "English"
+  },
+  "onboardingTitle": {
+    "message": "Welcome to LI Web Interceptor"
+  },
+  "onboardingSub": {
+    "message": "Block distracting sites and stay focused. A few steps to get started."
+  },
+  "onboardingStart": {
+    "message": "Get started"
+  },
+  "onboardingSettings": {
+    "message": "Open settings"
+  },
+  "onb1Title": {
+    "message": "Block sites"
+  },
+  "onb1Desc": {
+    "message": "Visiting a blocked site shows a full-screen page; supports permanent / timed / attempt / schedule."
+  },
+  "onb2Title": {
+    "message": "Match modes"
+  },
+  "onb2Desc": {
+    "message": "Domain+variants, contain, exact, wildcard, full URL. By default only the exact domain."
+  },
+  "onb3Title": {
+    "message": "Whitelist & password"
+  },
+  "onb3Desc": {
+    "message": "Whitelist allows priority access; random password + security question protects your setup."
+  },
+  "onb4Title": {
+    "message": "Profiles & Pomodoro"
+  },
+  "onb4Desc": {
+    "message": "Switch work/study profiles in one click, built-in Pomodoro focus timer."
+  },
+  "onb5Title": {
+    "message": "Backup & sync"
+  },
+  "onb5Desc": {
+    "message": "Export JSON, or sync to your own WebDAV / S3 storage."
+  },
+  "onb6Title": {
+    "message": "Shortcuts"
+  },
+  "onb6Desc": {
+    "message": "Type bl in the address bar, keyboard shortcuts, Chinese & English."
+  },
+  "blBatch": {
+    "message": "Batch add"
+  },
+  "blBatchPlaceholder": {
+    "message": "One domain per line, or comma/space separated"
+  },
+  "blBatchHint": {
+    "message": "Batch adds each as a permanent domain rule with current derivative options"
+  },
+  "popupPause": {
+    "message": "Pause 10 min"
+  },
+  "popupPaused": {
+    "message": "Paused · click to resume"
+  },
+  "pauseDone": {
+    "message": "Paused for $1 min"
+  },
+  "pauseClear": {
+    "message": "Blocking resumed"
   }
 }

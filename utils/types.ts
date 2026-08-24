@@ -189,6 +189,8 @@ export interface AppState {
   /** 禁用冷却（分钟），关闭总开关后需等待才能重新开启 */
   cooldownMinutes: number;
   cooldownUntil: number | null;
+  /** 临时暂停（防打扰）：该时间前放行所有网站，之后恢复 */
+  pauseUntil: number | null;
   theme: Theme;
   lang: Lang;
   historyEnabled: boolean;
@@ -211,7 +213,7 @@ export interface AppState {
   attemptResetDay: string;
 }
 
-export const STATE_VERSION = 2;
+export const STATE_VERSION = 3;
 
 /** 预设安全问题 */
 export const SECURITY_QUESTIONS = [

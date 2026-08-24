@@ -1,0 +1,40 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #fff8ee; --surface: #fffdf7; --border: #ffd9a8; --text: #5b4a3f;
+  --text-strong: #3e2f28; --text-muted: #a08a74; --accent: #ff6f3c; --accent-hover: #ff8f63;
+  --accent-soft: #fff0e0;
+}
+[data-theme='dark'] {
+  --bg: #2a231f; --surface: #3a3028; --border: #58493d; --text: #e9ddc7;
+  --text-strong: #fff6e8; --text-muted: #b3a08a; --accent: #ff8f63; --accent-hover: #ffa580;
+  --accent-soft: #4a3426;
+}
+html.pre-i18n { visibility: hidden; }
+body {
+  font-family: 'Chalkboard SE','Comic Sans MS','PingFang SC','Microsoft YaHei',sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 10%, transparent) 1.2px, transparent 1.2px);
+  background-size: 22px 22px;
+  padding: 40px 20px 60px;
+}
+.wrap { max-width: 880px; margin: 0 auto; text-align: center; }
+.hero .logo { font-size: 64px; display: inline-block; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.12)); }
+.hero h1 { font-size: 34px; color: var(--text-strong); margin: 14px 0 8px; }
+.hero .sub { color: var(--text-muted); font-size: 16px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 30px 0; }
+.card {
+  background: var(--surface); border: 2px solid var(--border); border-radius: 18px;
+  padding: 20px; text-align: left;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--border) 60%, #000), 0 8px 16px rgba(0,0,0,0.04);
+}
+.card .emoji { font-size: 34px; }
+.card h3 { font-size: 17px; color: var(--text-strong); margin: 8px 0 6px; }
+.card p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+.footer { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn {
+  border: none; border-radius: 999px; padding: 13px 30px; font-size: 16px; font-weight: 600;
+  cursor: pointer; box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 60%, #000); transition: transform 0.06s;
+}
+.btn:active { transform: translateY(2px); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-ghost { background: var(--surface); color: var(--accent); border: 2px solid var(--accent); }

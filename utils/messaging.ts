@@ -69,6 +69,7 @@ export type Message =
   | { type: 'set-whitelist-mode'; payload: { enabled: boolean } }
   | { type: 'set-silent-mode'; payload: { enabled: boolean } }
   | { type: 'set-lock-enabled'; payload: { enabled: boolean } }
+  | { type: 'set-pause'; payload: { minutes: number } }
   | { type: 'set-history-enabled'; payload: { enabled: boolean } }
   | { type: 'set-cooldown'; payload: { minutes: number } }
   | { type: 'set-password-enabled'; payload: { enabled: boolean } }

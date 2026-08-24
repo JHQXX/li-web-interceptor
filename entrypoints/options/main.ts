@@ -4,6 +4,7 @@ import { getActiveProfile } from '@/utils/storage';
 import { minToClock, parseClockToMin, formatRemaining, pomodoroRemainingSec } from '@/utils/time';
 import { SECURITY_QUESTIONS } from '@/utils/types';
 import { computeTodayStats, actionLabel } from '@/utils/stats';
+import { parseHostList } from '@/utils/hostlist';
 import { t, weekdayWithPrefix , applyI18n, applyI18nWhenReady, setLang } from '@/utils/i18n';
 import { applyTheme } from '@/utils/theme';
 
@@ -45,7 +46,8 @@ function activateTab(tab: string) {
 }
 
 document.querySelectorAll<HTMLLIElement>('.tabs-nav li').forEach((li) => {
-  li.addEventListener('click', () => {
+  li.addEventListener('click', (e) => {
+    e.preventDefault();
     activateTab(li.dataset.tab!);
     sessionStorage.setItem('liwi_tab', li.dataset.tab!);
   });
@@ -458,6 +460,28 @@ document.querySelectorAll<HTMLButtonElement>('.tpl').forEach((btn) => {
     refresh();
     flashMsg(t('blTemplateAdded', [t(tpl.nameKey)]));
   });
+});
+
+// ---------- 批量添加 ----------
+$('btn-toggle-batch').addEventListener('click', () => {
+  $('batch-box').classList.toggle('hidden');
+});
+$('btn-add-batch').addEventListener('click', async () => {
+  const text = $<HTMLTextAreaElement>('bl-batch').value;
+  const hosts = parseHostList(text);
+  if (hosts.length === 0) return;
+  const domainOptions = {
+    includeSubdomains: $<HTMLInputElement>('bl-sub').checked,
+    includeTldVariants: $<HTMLInputElement>('bl-tld').checked,
+    includeKnownMirrors: $<HTMLInputElement>('bl-mirror').checked,
+  };
+  for (const host of hosts) {
+    await send({ type: 'add-block', payload: { text: host, matchMode: 'domain', blockType: 'permanent', domainOptions } });
+  }
+  $<HTMLTextAreaElement>('bl-batch').value = '';
+  state = await send({ type: 'get-state' }).then((r) => r.state);
+  refresh();
+  flashMsg(`${hosts.length} ${t('add')}`);
 });
 
 // ---------- 添加拦截 ----------
