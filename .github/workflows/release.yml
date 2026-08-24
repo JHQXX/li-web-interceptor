@@ -24,8 +24,13 @@ jobs:
         run: npm run build
       - name: 打包 zip
         run: npm run zip
+      - name: 生成发布说明（自定义模板 + 自动提交列表）
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: sed "s/@VERSION@/${VERSION}/" .github/release-body.md > release-body.md
       - name: 创建 Release 并上传附件
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.zip
+          body_path: release-body.md
           generate_release_notes: true
