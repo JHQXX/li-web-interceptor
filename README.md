@@ -1,5 +1,7 @@
 # LI 网站拦截器 (li-web-interceptor)
 
+[![CI](https://github.com/JHQXX/li-web-interceptor/actions/workflows/ci.yml/badge.svg)](https://github.com/JHQXX/li-web-interceptor/actions/workflows/ci.yml)
+
 一个面向 Chromium（Chrome / Edge）的浏览器扩展（Manifest V3）：拦截指定网站，帮助你专注与自律。功能集参考 Extfy「Website Blocker」全量对齐，当前全部免费。
 
 ## 功能
