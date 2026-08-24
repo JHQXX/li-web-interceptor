@@ -219,20 +219,37 @@ async function updateBadge(state?: AppState) {
     await browser.action.setBadgeBackgroundColor({ color: p.status === 'break' ? '#4caf50' : '#E64A19' });
     return;
   }
-  let best: number | null = null;
-  for (const until of Object.values(state.activeTimewise)) {
-    const rem = until - Date.now();
-    if (rem > 0 && (best == null || rem < best)) best = rem;
-  }
-  for (const cd of state.activeCountdowns) {
-    const rem = cd.unlocksAt - Date.now();
-    if (rem > 0 && (best == null || rem < best)) best = rem;
-  }
-  if (best != null) {
-    const min = Math.max(1, Math.ceil(best / 60000));
-    await browser.action.setBadgeText({ text: `${min}m` });
-    await browser.action.setBadgeBackgroundColor({ color: '#E64A19' });
-    return;
+  // 倒计时角标仅在“当前活动标签页正被拦截且仍在倒计时/计时中”时显示；
+  // 已临时放行、或处于其它页面时不显示。
+  try {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    const url = tab?.url;
+    if (url && /^https?:/i.test(url)) {
+      const host = getHostname(url);
+      if (host) {
+        const profile = getActiveProfile(state);
+        const decision = decide(url, host, {
+          blockList: profile.blockList,
+          whitelist: profile.whitelist,
+          keywords: profile.keywords,
+          keywordBlockingEnabled: profile.settings.keywordBlockingEnabled,
+          whitelistMode: profile.settings.whitelistMode,
+          sessionUnlocks: state.sessionUnlocks,
+          activeCountdowns: state.activeCountdowns,
+          activeTimewise: state.activeTimewise,
+          attemptState: state.attemptState,
+          whitelistAttemptState: state.whitelistAttemptState,
+        });
+        if (decision.status === 'blocked' && decision.countdownRemainingMs != null && decision.countdownRemainingMs > 0) {
+          const min = Math.max(1, Math.ceil(decision.countdownRemainingMs / 60000));
+          await browser.action.setBadgeText({ text: `${min}m` });
+          await browser.action.setBadgeBackgroundColor({ color: '#E64A19' });
+          return;
+        }
+      }
+    }
+  } catch {
+    // 忽略
   }
   await browser.action.setBadgeText({ text: '' });
 }
@@ -889,6 +906,9 @@ export default defineBackground(() => {
 
   browser.omnibox.onInputEntered.addListener(handleOmnibox);
   browser.commands.onCommand.addListener(handleCommand);
+  browser.tabs.onActivated.addListener(() => {
+    updateBadge().catch(console.error);
+  });
 
   (async () => {
     const state = await resetPomodoroDayIfNewDay(await loadState());

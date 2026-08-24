@@ -267,3 +267,17 @@ describe('默认只拦当前域名（衍生扩展全关）', () => {
     expect(p).not.toContain('youtu.be');
   });
 });
+
+describe('timewise 剩余时间', () => {
+  it('计时中返回剩余毫秒', () => {
+    const rule = mkRule({ blockType: 'timewise', durationMs: 60000 });
+    const now = Date.now();
+    const d = decide('https://youtube.com', 'youtube.com', {
+      ...baseInput(),
+      blockList: [rule],
+      activeTimewise: { b1: now + 30_000 },
+    }, now);
+    expect(d.status).toBe('blocked');
+    if (d.status === 'blocked') expect(d.countdownRemainingMs).toBe(30_000);
+  });
+});

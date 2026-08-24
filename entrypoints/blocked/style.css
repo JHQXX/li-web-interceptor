@@ -193,3 +193,18 @@ footer a { color: var(--text-faint); }
 .btn:active { transform: translateY(3px); }
 
 html.pre-i18n { visibility: hidden; }
+
+.timer-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.timer-input {
+  width: 92px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+}
+.timer-input:focus { border-color: var(--accent); }
+.timer-unit { color: var(--text-muted); font-size: 14px; }

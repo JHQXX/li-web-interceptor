@@ -56,12 +56,15 @@ function render() {
 
   const countdown = $('countdown');
   const btnContinue = $('btn-continue');
-  const btnTimer = $('btn-timer');
+  const timerRow = $('timer-row');
   const btnUnlock = $('btn-unlock');
+  const timerInput = $<HTMLInputElement>('timer-min');
+  const defaultMin = Math.max(1, Math.round(profile.settings.blockPage.defaultCountdownMs / 60000));
+  if (!timerInput.dataset.touched) timerInput.value = String(defaultMin);
 
   if (decision.status === 'blocked') {
     btnContinue.classList.add('hidden');
-    btnTimer.classList.remove('hidden');
+    timerRow.classList.remove('hidden');
     btnUnlock.classList.remove('hidden');
     if (decision.countdownRemainingMs != null && profile.settings.blockPage.showCountdown) {
       countdown.classList.remove('hidden');
@@ -73,7 +76,7 @@ function render() {
     countdown.classList.add('hidden');
     btnContinue.classList.remove('hidden');
     btnContinue.textContent = t('blockedNowAccessible');
-    btnTimer.classList.add('hidden');
+    timerRow.classList.add('hidden');
     btnUnlock.classList.add('hidden');
   }
 
@@ -194,8 +197,10 @@ async function removeRuleAndGo() {
 }
 
 async function startCountdown() {
-  const profile = getActiveProfile(state);
-  const minutes = Math.max(1, Math.round(profile.settings.blockPage.defaultCountdownMs / 60000));
+  const input = $<HTMLInputElement>('timer-min');
+  input.dataset.touched = '1';
+  const minutes = Math.max(1, Math.min(1440, Math.round(Number(input.value) || 30)));
+  input.value = String(minutes);
   await send({ type: 'start-countdown', payload: { host: site, minutes } });
   state = await send({ type: 'get-state' }).then((r) => r.state);
   render();
@@ -213,6 +218,9 @@ async function autoClose() {
 
 $('btn-continue').addEventListener('click', goBack);
 $('btn-timer').addEventListener('click', startCountdown);
+$<HTMLInputElement>('timer-min').addEventListener('input', () => {
+  ($('timer-min') as HTMLInputElement).dataset.touched = '1';
+});
 $('btn-unlock').addEventListener('click', openModal);
 $('btn-pwd-ok').addEventListener('click', () => {
   if (!$('sec-wrap').classList.contains('hidden')) submitSecurityAnswer();

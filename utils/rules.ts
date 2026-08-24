@@ -248,7 +248,13 @@ export function decide(
       if (until != null && until <= now) {
         return { status: 'allowed', cause: 'not-listed' };
       }
-      return { status: 'blocked', cause: 'rule', rule, countdownRemainingMs: null, silent: false };
+      return {
+        status: 'blocked',
+        cause: 'rule',
+        rule,
+        countdownRemainingMs: until != null ? until - now : null,
+        silent: false,
+      };
     }
     if (rule.blockType === 'attemptwise') {
       const used = input.attemptState[rule.id] ?? 0;

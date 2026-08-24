@@ -15,7 +15,11 @@
       <div id="auto-close" class="auto-close hidden"></div>
       <div id="actions" class="actions">
         <button id="btn-continue" class="btn btn-primary hidden">__MSG_blockedContinue__</button>
-        <button id="btn-timer" class="btn btn-ghost">__MSG_blockedTimer__</button>
+        <div id="timer-row" class="timer-row">
+          <input id="timer-min" type="number" min="1" max="1440" value="30" class="timer-input" />
+          <span class="timer-unit">__MSG_blMin__</span>
+          <button id="btn-timer" class="btn btn-ghost">__MSG_blockedTimer__</button>
+        </div>
         <button id="btn-unlock" class="btn btn-secondary">__MSG_blockedUnlock__</button>
       </div>
       <footer><a id="link-options" href="#">__MSG_blockedOpenSettings__</a></footer>
